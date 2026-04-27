@@ -1,0 +1,956 @@
+# Bitácora de Ejecución Científica - AMI-VIRTU
+
+
+============================================================
+EJECUCIÓN: 2026-04-27 07:13:58
+Entorno: development | Registros: 300 | Accuracy: 0.79
+------------------------------------------------------------
+RESULTADOS DETALLADOS:
+
+1. PSICOMETRÍA (CONSISTENCIA INTERNA):
+    Dimension  Cronbach_Alpha  McDonald_Omega         CI_95%
+      Critico        0.950457        0.969466 [0.942, 0.958]
+      Tecnico        0.944816        0.963712 [0.935, 0.954]
+Participativo        0.953996        0.973076 [0.946, 0.961]
+
+2. CONTRASTES SOCIODEMOGRÁFICOS:
+   - Sexo                     : Estadístico=-0.2294, p-valor=0.8187
+   - Universidad              : Estadístico=0.4947, p-valor=0.6102
+
+3. ASOCIACIONES BIVARIADAS (AMI vs RIESGO):
+   - Score_Critico       : Pearson_r=-0.374 (p=0.0000) | Spearman_rho=-0.381
+   - Score_Tecnico       : Pearson_r=-0.440 (p=0.0000) | Spearman_rho=-0.440
+   - Score_Participativo : Pearson_r=-0.406 (p=0.0000) | Spearman_rho=-0.403
+   - Score_AMI_Global    : Pearson_r=-0.473 (p=0.0000) | Spearman_rho=-0.481
+
+4. MODELO DE REGRESIÓN LOGÍSTICA (INFERENCIA CIENTÍFICA):
+   - Resumen Completo del Modelo:
+                           Logit Regression Results                           
+==============================================================================
+Dep. Variable:           Riesgo_Total   No. Observations:                  210
+Model:                          Logit   Df Residuals:                      206
+Method:                           MLE   Df Model:                            3
+Date:                Mon, 27 Apr 2026   Pseudo R-squ.:                  0.2333
+Time:                        07:13:00   Log-Likelihood:                -95.613
+converged:                       True   LL-Null:                       -124.71
+Covariance Type:            nonrobust   LLR p-value:                 1.431e-12
+=======================================================================================
+                          coef    std err          z      P>|z|      [0.025      0.975]
+---------------------------------------------------------------------------------------
+const                   1.3626      0.207      6.576      0.000       0.957       1.769
+Score_Critico          -0.2654      0.241     -1.100      0.272      -0.739       0.208
+Score_Tecnico          -1.0044      0.281     -3.568      0.000      -1.556      -0.453
+Score_Participativo    -0.3053      0.258     -1.184      0.237      -0.811       0.200
+=======================================================================================
+   - Accuracy: 0.7889
+   - Umbral Óptimo (Índice de Youden): 0.7304
+   - SHAP Explainability (Impacto Global):
+
+      DIMENSIÓN      | IMPACTO | VISUALIZACIÓN
+      ---------------|---------|------------------
+      Tecnico        | 0.1362  | ###############
+      Participativo  | 0.0403  | ####           
+      Critico        | 0.0341  | ###            
+
+5. ENSAMBLES AVANZADOS (GRADIENT BOOSTING):
+   - Accuracy: 0.7222
+   - SHAP Global:
+
+      DIMENSIÓN      | IMPACTO | VISUALIZACIÓN
+      ---------------|---------|------------------
+      Tecnico        | 0.2784  | ###############
+      Participativo  | 0.1223  | ######         
+      Critico        | 0.1110  | #####          
+
+
+6. SEGMENTACIÓN CON VALIDACIÓN (ELBOW/SILHOUETTE):
+   - Métricas de Estabilidad por K:
+     k=2: Silhouette=0.3877 | Inercia=465.35
+     k=3: Silhouette=0.3004 | Inercia=348.35
+     k=4: Silhouette=0.2594 | Inercia=295.39
+     k=5: Silhouette=0.2620 | Inercia=254.39
+     k=6: Silhouette=0.2484 | Inercia=228.85
+     k=7: Silhouette=0.2549 | Inercia=207.91
+   [K-Means]:
+     - Grupo 0 (N=143): Crit=2.86, Tec=2.81, Part=2.89 | RIESGO=82.52%
+     - Grupo 1 (N=83): Crit=3.78, Tec=3.79, Part=3.71 | RIESGO=42.17%
+     - Grupo 2 (N=74): Crit=2.12, Tec=2.04, Part=1.94 | RIESGO=94.59%
+   [Jerarquico-Ward]:
+     - Grupo 0 (N=137): Crit=2.88, Tec=2.72, Part=2.87 | RIESGO=83.21%
+     - Grupo 1 (N=91): Crit=3.66, Tec=3.77, Part=3.67 | RIESGO=45.05%
+     - Grupo 2 (N=72): Crit=2.12, Tec=2.10, Part=1.90 | RIESGO=94.44%
+   [DBSCAN]:
+     - Grupo 0 (N=5): Crit=2.38, Tec=2.26, Part=2.02 | RIESGO=100.00%
+     - Grupo 1 (N=41): Crit=2.79, Tec=2.63, Part=2.50 | RIESGO=85.37%
+     - Grupo 2 (N=18): Crit=3.37, Tec=3.42, Part=3.35 | RIESGO=38.89%
+     - Grupo 3 (N=4): Crit=2.40, Tec=2.12, Part=2.27 | RIESGO=100.00%
+     - Grupo 4 (N=7): Crit=3.30, Tec=2.99, Part=3.09 | RIESGO=85.71%
+     - Grupo 5 (N=7): Crit=2.31, Tec=2.40, Part=3.16 | RIESGO=85.71%
+     - Grupo 6 (N=10): Crit=2.76, Tec=2.97, Part=3.24 | RIESGO=60.00%
+     - Grupo 7 (N=4): Crit=2.23, Tec=2.90, Part=3.45 | RIESGO=75.00%
+     - Casos Atípicos (Ruido) (N=204): Estudiantes no agrupables.
+   [GMM]:
+     - Grupo 0 (N=81): Crit=3.81, Tec=3.81, Part=3.66 | RIESGO=41.98%
+     - Grupo 1 (N=62): Crit=2.07, Tec=1.96, Part=1.87 | RIESGO=96.77%
+     - Grupo 2 (N=157): Crit=2.82, Tec=2.78, Part=2.88 | RIESGO=82.17%
+
+7. EXPLAINABLE AI (XAI) GRANULAR (TOP 10 ÍTEMS):
+     1. T7: Impacto 0.3985
+     2. T6: Impacto 0.2968
+     3. C9: Impacto 0.2571
+     4. T4: Impacto 0.2448
+     5. C4: Impacto 0.2408
+     6. T2: Impacto 0.2296
+     7. T3: Impacto 0.2112
+     8. T5: Impacto 0.1622
+     9. T1: Impacto 0.1415
+     10. C6: Impacto 0.1301
+
+============================================================
+
+============================================================
+EJECUCIÓN: 2026-04-27 07:27:03
+Entorno: development | Registros: 300 | Accuracy: 0.79
+------------------------------------------------------------
+RESULTADOS DETALLADOS:
+
+1. PSICOMETRÍA (CONSISTENCIA INTERNA):
+    Dimension  Cronbach_Alpha  McDonald_Omega         CI_95%
+      Critico        0.950457        0.969466 [0.942, 0.958]
+      Tecnico        0.944816        0.963712 [0.935, 0.954]
+Participativo        0.953996        0.973076 [0.946, 0.961]
+
+2. AUDITORÍA DE CALIDAD (DETECCIÓN DE INCONSISTENCIAS):
+   - Casos Sospechosos Detectados: 0
+   - No se detectaron inconsistencias semánticas.
+
+3. CONTRASTES SOCIODEMOGRÁFICOS:
+   - Sexo                     : Estadístico=-0.2294, p-valor=0.8187
+   - Universidad              : Estadístico=0.4947, p-valor=0.6102
+
+3. ASOCIACIONES BIVARIADAS (AMI vs RIESGO):
+   - Score_Critico       : Pearson_r=-0.374 (p=0.0000) | Spearman_rho=-0.381
+   - Score_Tecnico       : Pearson_r=-0.440 (p=0.0000) | Spearman_rho=-0.440
+   - Score_Participativo : Pearson_r=-0.406 (p=0.0000) | Spearman_rho=-0.403
+   - Score_AMI_Global    : Pearson_r=-0.473 (p=0.0000) | Spearman_rho=-0.481
+
+4. MODELO DE REGRESIÓN LOGÍSTICA (INFERENCIA CIENTÍFICA):
+   - Resumen Completo del Modelo:
+                           Logit Regression Results                           
+==============================================================================
+Dep. Variable:           Riesgo_Total   No. Observations:                  210
+Model:                          Logit   Df Residuals:                      206
+Method:                           MLE   Df Model:                            3
+Date:                Mon, 27 Apr 2026   Pseudo R-squ.:                  0.2333
+Time:                        07:26:18   Log-Likelihood:                -95.613
+converged:                       True   LL-Null:                       -124.71
+Covariance Type:            nonrobust   LLR p-value:                 1.431e-12
+=======================================================================================
+                          coef    std err          z      P>|z|      [0.025      0.975]
+---------------------------------------------------------------------------------------
+const                   1.3626      0.207      6.576      0.000       0.957       1.769
+Score_Critico          -0.2654      0.241     -1.100      0.272      -0.739       0.208
+Score_Tecnico          -1.0044      0.281     -3.568      0.000      -1.556      -0.453
+Score_Participativo    -0.3053      0.258     -1.184      0.237      -0.811       0.200
+=======================================================================================
+   - Accuracy: 0.7889
+   - Umbral Óptimo (Índice de Youden): 0.7304
+   - SHAP Explainability (Impacto Global):
+
+      DIMENSIÓN      | IMPACTO | VISUALIZACIÓN
+      ---------------|---------|------------------
+      Tecnico        | 0.1362  | ###############
+      Participativo  | 0.0403  | ####           
+      Critico        | 0.0341  | ###            
+
+5. ENSAMBLES AVANZADOS (GRADIENT BOOSTING):
+   - Accuracy: 0.7222
+   - SHAP Global:
+
+      DIMENSIÓN      | IMPACTO | VISUALIZACIÓN
+      ---------------|---------|------------------
+      Tecnico        | 0.2784  | ###############
+      Participativo  | 0.1223  | ######         
+      Critico        | 0.1110  | #####          
+
+
+6. SEGMENTACIÓN CON VALIDACIÓN (ELBOW/SILHOUETTE):
+   - Métricas de Estabilidad por K:
+     k=2: Silhouette=0.3877 | Inercia=465.35
+     k=3: Silhouette=0.3004 | Inercia=348.35
+     k=4: Silhouette=0.2594 | Inercia=295.39
+     k=5: Silhouette=0.2620 | Inercia=254.39
+     k=6: Silhouette=0.2484 | Inercia=228.85
+     k=7: Silhouette=0.2549 | Inercia=207.91
+   [K-Means]:
+     - Grupo 0 (N=143): Crit=2.86, Tec=2.81, Part=2.89 | RIESGO=82.52%
+     - Grupo 1 (N=83): Crit=3.78, Tec=3.79, Part=3.71 | RIESGO=42.17%
+     - Grupo 2 (N=74): Crit=2.12, Tec=2.04, Part=1.94 | RIESGO=94.59%
+   [Jerarquico-Ward]:
+     - Grupo 0 (N=137): Crit=2.88, Tec=2.72, Part=2.87 | RIESGO=83.21%
+     - Grupo 1 (N=91): Crit=3.66, Tec=3.77, Part=3.67 | RIESGO=45.05%
+     - Grupo 2 (N=72): Crit=2.12, Tec=2.10, Part=1.90 | RIESGO=94.44%
+   [DBSCAN]:
+     - Grupo 0 (N=5): Crit=2.38, Tec=2.26, Part=2.02 | RIESGO=100.00%
+     - Grupo 1 (N=41): Crit=2.79, Tec=2.63, Part=2.50 | RIESGO=85.37%
+     - Grupo 2 (N=18): Crit=3.37, Tec=3.42, Part=3.35 | RIESGO=38.89%
+     - Grupo 3 (N=4): Crit=2.40, Tec=2.12, Part=2.27 | RIESGO=100.00%
+     - Grupo 4 (N=7): Crit=3.30, Tec=2.99, Part=3.09 | RIESGO=85.71%
+     - Grupo 5 (N=7): Crit=2.31, Tec=2.40, Part=3.16 | RIESGO=85.71%
+     - Grupo 6 (N=10): Crit=2.76, Tec=2.97, Part=3.24 | RIESGO=60.00%
+     - Grupo 7 (N=4): Crit=2.23, Tec=2.90, Part=3.45 | RIESGO=75.00%
+     - Casos Atípicos (Ruido) (N=204): Estudiantes no agrupables.
+   [GMM]:
+     - Grupo 0 (N=81): Crit=3.81, Tec=3.81, Part=3.66 | RIESGO=41.98%
+     - Grupo 1 (N=62): Crit=2.07, Tec=1.96, Part=1.87 | RIESGO=96.77%
+     - Grupo 2 (N=157): Crit=2.82, Tec=2.78, Part=2.88 | RIESGO=82.17%
+
+7. EXPLAINABLE AI (XAI) GRANULAR (TOP 10 ÍTEMS):
+     1. T7: Impacto 0.3985
+     2. T6: Impacto 0.2968
+     3. C9: Impacto 0.2571
+     4. T4: Impacto 0.2448
+     5. C4: Impacto 0.2408
+     6. T2: Impacto 0.2296
+     7. T3: Impacto 0.2112
+     8. T5: Impacto 0.1622
+     9. T1: Impacto 0.1415
+     10. C6: Impacto 0.1301
+
+============================================================
+
+============================================================
+EJECUCIÓN: 2026-04-27 09:03:26
+Entorno: development | Registros: 13 | Accuracy: 0.00
+------------------------------------------------------------
+RESULTADOS DETALLADOS:
+
+1. PSICOMETRÍA (CONSISTENCIA INTERNA):
+    Dimension  Cronbach_Alpha  McDonald_Omega         CI_95%
+      Critico        0.950457        0.969466 [0.942, 0.958]
+      Tecnico        0.944816        0.963712 [0.935, 0.954]
+Participativo        0.953996        0.973076 [0.946, 0.961]
+
+2. AUDITORÍA DE CALIDAD (DETECCIÓN DE INCONSISTENCIAS):
+   - Casos Sospechosos Detectados: 0
+   - No se detectaron inconsistencias semánticas.
+
+3. CONTRASTES SOCIODEMOGRÁFICOS:
+   - Sexo                     : Estadístico=0.1769, p-valor=0.8628
+   - Universidad              : Estadístico=0.3136, p-valor=0.7378
+
+3. ASOCIACIONES BIVARIADAS (AMI vs RIESGO):
+   - Score_Critico       : Pearson_r=-0.380 (p=0.2006) | Spearman_rho=-0.343
+   - Score_Tecnico       : Pearson_r=-0.341 (p=0.2548) | Spearman_rho=-0.344
+   - Score_Participativo : Pearson_r=-0.223 (p=0.4639) | Spearman_rho=-0.288
+   - Score_AMI_Global    : Pearson_r=-0.465 (p=0.1098) | Spearman_rho=-0.574
+
+4. MODELO DE REGRESIÓN LOGÍSTICA (INFERENCIA CIENTÍFICA):
+   - Resumen Completo del Modelo:
+                           Logit Regression Results                           
+==============================================================================
+Dep. Variable:           Riesgo_Total   No. Observations:                    9
+Model:                          Logit   Df Residuals:                        5
+Method:                           MLE   Df Model:                            3
+Date:                Mon, 27 Apr 2026   Pseudo R-squ.:                   1.000
+Time:                        09:02:08   Log-Likelihood:            -2.4449e-08
+converged:                      False   LL-Null:                       -4.7674
+Covariance Type:            nonrobust   LLR p-value:                   0.02296
+=======================================================================================
+                          coef    std err          z      P>|z|      [0.025      0.975]
+---------------------------------------------------------------------------------------
+const                  66.8139   2.39e+04      0.003      0.998   -4.68e+04    4.69e+04
+Score_Critico        -104.9866   3.71e+04     -0.003      0.998   -7.29e+04    7.26e+04
+Score_Tecnico        -134.5502   4.64e+04     -0.003      0.998   -9.11e+04    9.09e+04
+Score_Participativo    19.1991   1.08e+04      0.002      0.999   -2.11e+04    2.11e+04
+=======================================================================================
+
+Complete Separation: The results show that there iscomplete separation or perfect prediction.
+In this case the Maximum Likelihood Estimator does not exist and the parameters
+are not identified.
+   - Accuracy: 0.0000
+   - Umbral Óptimo (Índice de Youden): inf
+   - SHAP Explainability (Impacto Global):
+
+      DIMENSIÓN      | IMPACTO | VISUALIZACIÓN
+      ---------------|---------|------------------
+      Critico        | 0.2746  | ###############
+      Tecnico        | 0.2715  | ############## 
+      Participativo  | 0.0945  | #####          
+
+5. ENSAMBLES AVANZADOS (GRADIENT BOOSTING):
+   - Accuracy: 0.0000
+   - SHAP Global:
+
+      DIMENSIÓN      | IMPACTO | VISUALIZACIÓN
+      ---------------|---------|------------------
+      Tecnico        | 0.1638  | ###############
+      Critico        | 0.1242  | ###########    
+      Participativo  | 0.0594  | #####          
+
+
+6. SEGMENTACIÓN CON VALIDACIÓN (ELBOW/SILHOUETTE):
+   - Métricas de Estabilidad por K:
+     k=2: Silhouette=0.3575 | Inercia=21.79
+     k=3: Silhouette=0.3603 | Inercia=14.96
+     k=4: Silhouette=0.3921 | Inercia=9.02
+     k=5: Silhouette=0.3929 | Inercia=5.89
+     k=6: Silhouette=0.3647 | Inercia=4.11
+     k=7: Silhouette=0.3068 | Inercia=3.12
+   [K-Means]:
+     - Grupo 0 (N=8): Crit=2.73, Tec=3.01, Part=2.95 | RIESGO=75.00%
+     - Grupo 1 (N=2): Crit=2.20, Tec=2.00, Part=2.05 | RIESGO=100.00%
+     - Grupo 2 (N=3): Crit=3.23, Tec=2.07, Part=2.50 | RIESGO=100.00%
+   [Jerarquico-Ward]:
+     - Grupo 0 (N=8): Crit=2.73, Tec=3.01, Part=2.95 | RIESGO=75.00%
+     - Grupo 1 (N=2): Crit=2.20, Tec=2.00, Part=2.05 | RIESGO=100.00%
+     - Grupo 2 (N=3): Crit=3.23, Tec=2.07, Part=2.50 | RIESGO=100.00%
+   [DBSCAN]:
+     - Casos Atípicos (Ruido) (N=13): Estudiantes no agrupables.
+   [GMM]:
+     - Grupo 0 (N=6): Crit=3.20, Tec=2.55, Part=2.60 | RIESGO=66.67%
+     - Grupo 1 (N=5): Crit=2.46, Tec=3.00, Part=3.10 | RIESGO=100.00%
+     - Grupo 2 (N=2): Crit=2.20, Tec=2.00, Part=2.05 | RIESGO=100.00%
+
+7. EXPLAINABLE AI (XAI) GRANULAR (TOP 10 ÍTEMS):
+     1. C4: Impacto 3.7484
+     2. P3: Impacto 0.3146
+     3. T6: Impacto 0.2819
+     4. P10: Impacto 0.2386
+     5. P4: Impacto 0.1948
+     6. P7: Impacto 0.1779
+     7. C1: Impacto 0.1512
+     8. P5: Impacto 0.1374
+     9. P8: Impacto 0.1130
+     10. T9: Impacto 0.0652
+
+============================================================
+
+============================================================
+EJECUCIÓN: 2026-04-27 11:13:39
+Entorno: development | Registros: 232 | Accuracy: 0.74
+------------------------------------------------------------
+RESULTADOS DETALLADOS:
+
+1. PSICOMETRÍA (CONSISTENCIA INTERNA):
+    Dimension  Cronbach_Alpha  McDonald_Omega         CI_95%
+      Critico        0.950457        0.969466 [0.942, 0.958]
+      Tecnico        0.944816        0.963712 [0.935, 0.954]
+Participativo        0.953996        0.973076 [0.946, 0.961]
+
+2. AUDITORÍA DE CALIDAD (DETECCIÓN DE INCONSISTENCIAS):
+   - Casos Sospechosos Detectados: 0
+   - No se detectaron inconsistencias semánticas.
+
+3. CONTRASTES SOCIODEMOGRÁFICOS:
+   - Sexo                     : Estadístico=0.5932, p-valor=0.5536
+   - Universidad              : Estadístico=0.9280, p-valor=0.3968
+
+3. ASOCIACIONES BIVARIADAS (AMI vs RIESGO):
+   - Score_Critico       : Pearson_r=-0.381 (p=0.0000) | Spearman_rho=-0.401
+   - Score_Tecnico       : Pearson_r=-0.468 (p=0.0000) | Spearman_rho=-0.463
+   - Score_Participativo : Pearson_r=-0.433 (p=0.0000) | Spearman_rho=-0.429
+   - Score_AMI_Global    : Pearson_r=-0.504 (p=0.0000) | Spearman_rho=-0.518
+
+4. MODELO DE REGRESIÓN LOGÍSTICA (INFERENCIA CIENTÍFICA):
+   - Resumen Completo del Modelo:
+                           Logit Regression Results                           
+==============================================================================
+Dep. Variable:           Riesgo_Total   No. Observations:                  162
+Model:                          Logit   Df Residuals:                      158
+Method:                           MLE   Df Model:                            3
+Date:                Mon, 27 Apr 2026   Pseudo R-squ.:                  0.2442
+Time:                        11:12:41   Log-Likelihood:                -70.850
+converged:                       True   LL-Null:                       -93.743
+Covariance Type:            nonrobust   LLR p-value:                 6.296e-10
+=======================================================================================
+                          coef    std err          z      P>|z|      [0.025      0.975]
+---------------------------------------------------------------------------------------
+const                   1.4755      0.245      6.018      0.000       0.995       1.956
+Score_Critico          -0.3457      0.275     -1.257      0.209      -0.885       0.193
+Score_Tecnico          -0.9377      0.294     -3.187      0.001      -1.514      -0.361
+Score_Participativo    -0.2983      0.297     -1.006      0.315      -0.880       0.283
+=======================================================================================
+   - Accuracy: 0.7429
+   - Umbral Óptimo (Índice de Youden): 0.7840
+   - SHAP Explainability (Impacto Global):
+
+      DIMENSIÓN      | IMPACTO | VISUALIZACIÓN
+      ---------------|---------|------------------
+      Tecnico        | 0.1324  | ###############
+      Critico        | 0.0422  | ####           
+      Participativo  | 0.0352  | ###            
+
+5. ENSAMBLES AVANZADOS (GRADIENT BOOSTING):
+   - Accuracy: 0.7571
+   - SHAP Global:
+
+      DIMENSIÓN      | IMPACTO | VISUALIZACIÓN
+      ---------------|---------|------------------
+      Tecnico        | 0.3574  | ###############
+      Critico        | 0.1370  | #####          
+      Participativo  | 0.1242  | #####          
+
+
+6. SEGMENTACIÓN CON VALIDACIÓN (ELBOW/SILHOUETTE):
+   - Métricas de Estabilidad por K:
+     k=2: Silhouette=0.3726 | Inercia=374.63
+     k=3: Silhouette=0.2925 | Inercia=282.48
+     k=4: Silhouette=0.2760 | Inercia=240.38
+     k=5: Silhouette=0.2556 | Inercia=207.42
+     k=6: Silhouette=0.2563 | Inercia=184.69
+     k=7: Silhouette=0.2610 | Inercia=164.83
+   [K-Means]:
+     - Grupo 0 (N=107): Crit=2.83, Tec=2.86, Part=2.91 | RIESGO=81.31%
+     - Grupo 1 (N=58): Crit=3.76, Tec=3.73, Part=3.65 | RIESGO=43.10%
+     - Grupo 2 (N=67): Crit=2.15, Tec=2.06, Part=2.03 | RIESGO=97.01%
+   [Jerarquico-Ward]:
+     - Grupo 0 (N=96): Crit=2.82, Tec=2.82, Part=2.90 | RIESGO=80.21%
+     - Grupo 1 (N=65): Crit=3.77, Tec=3.62, Part=3.54 | RIESGO=46.15%
+     - Grupo 2 (N=71): Crit=2.09, Tec=2.17, Part=2.12 | RIESGO=98.59%
+   [DBSCAN]:
+     - Grupo 0 (N=5): Crit=2.38, Tec=2.26, Part=2.02 | RIESGO=100.00%
+     - Grupo 1 (N=10): Crit=2.75, Tec=2.59, Part=2.79 | RIESGO=90.00%
+     - Grupo 2 (N=17): Crit=2.95, Tec=2.71, Part=2.31 | RIESGO=88.24%
+     - Grupo 3 (N=6): Crit=3.57, Tec=3.33, Part=3.28 | RIESGO=50.00%
+     - Grupo 4 (N=4): Crit=2.40, Tec=2.12, Part=2.27 | RIESGO=100.00%
+     - Grupo 5 (N=9): Crit=2.81, Tec=2.97, Part=3.29 | RIESGO=55.56%
+     - Casos Atípicos (Ruido) (N=181): Estudiantes no agrupables.
+   [GMM]:
+     - Grupo 0 (N=58): Crit=3.69, Tec=3.81, Part=3.59 | RIESGO=43.10%
+     - Grupo 1 (N=59): Crit=2.18, Tec=1.95, Part=2.00 | RIESGO=96.61%
+     - Grupo 2 (N=115): Crit=2.80, Tec=2.82, Part=2.89 | RIESGO=82.61%
+
+7. EXPLAINABLE AI (XAI) GRANULAR (TOP 10 ÍTEMS):
+     1. T6: Impacto 0.3452
+     2. T2: Impacto 0.3303
+     3. T4: Impacto 0.3213
+     4. T7: Impacto 0.2476
+     5. C8: Impacto 0.2220
+     6. T9: Impacto 0.1753
+     7. P2: Impacto 0.1481
+     8. P4: Impacto 0.1476
+     9. P5: Impacto 0.1386
+     10. C6: Impacto 0.1146
+
+============================================================
+
+============================================================
+EJECUCIÓN: 2026-04-27 14:32:56
+Entorno: Híbrido (Recuperación) | Registros: 263 | Accuracy: 0.82
+------------------------------------------------------------
+RESULTADOS DETALLADOS:
+Pipeline expandido a 16 ítems ARD-VIRTU y 100% data cualitativa recuperada.
+============================================================
+
+============================================================
+EJECUCIÓN: 2026-04-27 14:36:48
+Entorno: Híbrido (Recuperación) | Registros: 263 | Accuracy: 0.82
+------------------------------------------------------------
+RESULTADOS DETALLADOS:
+1. PSICOMETRÍA (CONSISTENCIA INTERNA):
+       Dimension  Cronbach_Alpha  McDonald_Omega          CI_95%
+0        Critico        0.867892        0.885250  [0.843, 0.890]
+1        Tecnico        0.862111        0.879354  [0.836, 0.886]
+2  Participativo        0.865071        0.882373  [0.839, 0.888]
+
+2. CONTRASTES SOCIODEMOGRÁFICOS:
+   - Sexo                     : Estadístico=0.2071, p-valor=0.8361
+   - Universidad              : Estadístico=0.6044, p-valor=0.5471
+
+3. MODELO DE REGRESIÓN LOGÍSTICA:
+   - Accuracy: 0.8228
+   - Umbral Optimizado: 0.7774
+
+4. SEGMENTACIÓN (K-Means):
+   - Grupo 0 (N=73): Crit=2.14, Tec=2.05, Part=2.00
+   - Grupo 1 (N=123): Crit=2.88, Tec=2.84, Part=2.91
+   - Grupo 2 (N=67): Crit=3.77, Tec=3.81, Part=3.71
+
+5. EXPLAINABLE AI (IMPORTANCIA DE ÍTEMS SHAP):
+   1. T4: Impacto 0.3503
+   2. T7: Impacto 0.3382
+   3. C6: Impacto 0.2441
+   4. T10: Impacto 0.2410
+   5. T6: Impacto 0.1953
+   6. P2: Impacto 0.1577
+   7. P1: Impacto 0.1475
+   8. P5: Impacto 0.1339
+   9. C4: Impacto 0.1147
+   10. T1: Impacto 0.1134
+
+============================================================
+
+============================================================
+EJECUCIÓN: 2026-04-27 14:41:49
+Entorno: Híbrido (Restauración Doctoral) | Registros: 263 | Accuracy: 0.82
+------------------------------------------------------------
+RESULTADOS DETALLADOS:
+1. PSICOMETRÍA (CONSISTENCIA INTERNA):
+       Dimension  Cronbach_Alpha  McDonald_Omega          CI_95%
+0        Critico        0.867892        0.885250  [0.843, 0.890]
+1        Tecnico        0.862111        0.879354  [0.836, 0.886]
+2  Participativo        0.865071        0.882373  [0.839, 0.888]
+
+2. AUDITORÍA DE CALIDAD (INCONSISTENCIAS):
+   - Casos Sospechosos Detectados: 0
+   - Metodología: Filtrado semántico mediante HybridIntegrator.
+
+3. CONTRASTES SOCIODEMOGRÁFICOS:
+   - Sexo                     : Estadístico=0.2071, p-valor=0.8361
+   - Universidad              : Estadístico=0.6044, p-valor=0.5471
+
+3. ASOCIACIONES BIVARIADAS (AMI vs RIESGO):
+   - Score_Critico       : Pearson_r=-0.381 (p=0.0000) | Spearman_rho=-0.393
+   - Score_Tecnico       : Pearson_r=-0.482 (p=0.0000) | Spearman_rho=-0.482
+   - Score_Participativo : Pearson_r=-0.441 (p=0.0000) | Spearman_rho=-0.439
+   - Score_AMI_Global    : Pearson_r=-0.507 (p=0.0000) | Spearman_rho=-0.516
+
+4. MODELO DE REGRESIÓN LOGÍSTICA (INFERENCIA CIENTÍFICA):
+- Resumen Completo del Modelo:
+                           Logit Regression Results                           
+==============================================================================
+Dep. Variable:           Riesgo_Total   No. Observations:                  184
+Model:                          Logit   Df Residuals:                      180
+Method:                           MLE   Df Model:                            3
+Date:                Mon, 27 Apr 2026   Pseudo R-squ.:                  0.2084
+Time:                        14:41:25   Log-Likelihood:                -81.902
+converged:                       True   LL-Null:                       -103.47
+Covariance Type:            nonrobust   LLR p-value:                 2.304e-09
+=======================================================================================
+                          coef    std err          z      P>|z|      [0.025      0.975]
+---------------------------------------------------------------------------------------
+const                   1.4860      0.225      6.594      0.000       1.044       1.928
+Score_Critico          -0.2351      0.261     -0.902      0.367      -0.746       0.276
+Score_Tecnico          -0.7695      0.300     -2.567      0.010      -1.357      -0.182
+Score_Participativo    -0.5189      0.282     -1.842      0.065      -1.071       0.033
+=======================================================================================
+   - Accuracy: 0.8228
+   - Umbral Óptimo (Índice de Youden): 0.7774
+
+5. ENSAMBLES AVANZADOS (GRADIENT BOOSTING):
+   - Accuracy: 0.7468
+   - SHAP Global (Impacto por Dimensión):
+      Critico         | 0.2906 | ##############
+      Tecnico         | 0.5098 | #########################
+      Participativo   | 0.1995 | #########
+
+6. SEGMENTACIÓN MULTIALGORITMO:
+   [K-Means]:
+     - Grupo 0 (N=73): Crit=2.14, Tec=2.05, Part=2.00 | RIESGO=95.89%
+     - Grupo 1 (N=123): Crit=2.88, Tec=2.84, Part=2.91 | RIESGO=79.67%
+     - Grupo 2 (N=67): Crit=3.77, Tec=3.81, Part=3.71 | RIESGO=40.30%
+   [Jerarquico-Ward]:
+     - Grupo 0 (N=96): Crit=2.12, Tec=2.26, Part=2.31 | RIESGO=94.79%
+     - Grupo 1 (N=120): Crit=3.11, Tec=2.95, Part=2.93 | RIESGO=72.50%
+     - Grupo 2 (N=47): Crit=3.96, Tec=3.90, Part=3.83 | RIESGO=36.17%
+   [DBSCAN]:
+     - Grupo 0 (N=5): Crit=2.38, Tec=2.26, Part=2.02 | RIESGO=100.00%
+     - Grupo 1 (N=10): Crit=2.75, Tec=2.59, Part=2.79 | RIESGO=90.00%
+     - Grupo 2 (N=19): Crit=2.94, Tec=2.67, Part=2.32 | RIESGO=89.47%
+     - Grupo 3 (N=7): Crit=3.54, Tec=3.31, Part=3.31 | RIESGO=42.86%
+     - Grupo 4 (N=7): Crit=3.20, Tec=3.60, Part=3.34 | RIESGO=28.57%
+     - Grupo 5 (N=4): Crit=2.40, Tec=2.12, Part=2.27 | RIESGO=100.00%
+     - Grupo 6 (N=7): Crit=2.31, Tec=2.40, Part=3.16 | RIESGO=85.71%
+     - Grupo 7 (N=9): Crit=2.81, Tec=2.97, Part=3.29 | RIESGO=44.44%
+     - Grupo 8 (N=5): Crit=3.34, Tec=2.98, Part=3.04 | RIESGO=80.00%
+   [GMM]:
+     - Grupo 0 (N=80): Crit=3.71, Tec=3.72, Part=3.60 | RIESGO=42.50%
+     - Grupo 1 (N=134): Crit=2.74, Tec=2.72, Part=2.80 | RIESGO=84.33%
+     - Grupo 2 (N=49): Crit=2.02, Tec=1.88, Part=1.84 | RIESGO=97.96%
+
+7. EXPLAINABLE AI (XAI) GRANULAR (TOP 10 ÍTEMS):
+     1. T4: Impacto 0.3503
+     2. T7: Impacto 0.3382
+     3. C6: Impacto 0.2441
+     4. T10: Impacto 0.2410
+     5. T6: Impacto 0.1953
+     6. P2: Impacto 0.1577
+     7. P1: Impacto 0.1475
+     8. P5: Impacto 0.1339
+     9. C4: Impacto 0.1147
+     10. T1: Impacto 0.1134
+
+============================================================
+
+============================================================
+EJECUCIÓN: 2026-04-27 14:43:00
+Entorno: Híbrido (Restauración Doctoral) | Registros: 263 | Accuracy: 0.82
+------------------------------------------------------------
+RESULTADOS DETALLADOS:
+1. PSICOMETRÍA (CONSISTENCIA INTERNA):
+       Dimension  Cronbach_Alpha  McDonald_Omega          CI_95%
+0        Critico        0.867892        0.885250  [0.843, 0.890]
+1        Tecnico        0.862111        0.879354  [0.836, 0.886]
+2  Participativo        0.865071        0.882373  [0.839, 0.888]
+
+2. AUDITORÍA DE CALIDAD (INCONSISTENCIAS):
+   - Casos Sospechosos Detectados: 0
+   - Metodología: Filtrado semántico mediante HybridIntegrator.
+
+3. CONTRASTES SOCIODEMOGRÁFICOS:
+   - Sexo                     : Estadístico=0.2071, p-valor=0.8361
+   - Universidad              : Estadístico=0.6044, p-valor=0.5471
+
+4. ASOCIACIONES BIVARIADAS (AMI vs RIESGO):
+   - Score_Critico       : Pearson_r=-0.381 (p=0.0000) | Spearman_rho=-0.393
+   - Score_Tecnico       : Pearson_r=-0.482 (p=0.0000) | Spearman_rho=-0.482
+   - Score_Participativo : Pearson_r=-0.441 (p=0.0000) | Spearman_rho=-0.439
+   - Score_AMI_Global    : Pearson_r=-0.507 (p=0.0000) | Spearman_rho=-0.516
+
+5. MODELO DE REGRESIÓN LOGÍSTICA (INFERENCIA CIENTÍFICA):
+- Resumen Completo del Modelo:
+                           Logit Regression Results                           
+==============================================================================
+Dep. Variable:           Riesgo_Total   No. Observations:                  184
+Model:                          Logit   Df Residuals:                      180
+Method:                           MLE   Df Model:                            3
+Date:                Mon, 27 Apr 2026   Pseudo R-squ.:                  0.2084
+Time:                        14:42:37   Log-Likelihood:                -81.902
+converged:                       True   LL-Null:                       -103.47
+Covariance Type:            nonrobust   LLR p-value:                 2.304e-09
+=======================================================================================
+                          coef    std err          z      P>|z|      [0.025      0.975]
+---------------------------------------------------------------------------------------
+const                   1.4860      0.225      6.594      0.000       1.044       1.928
+Score_Critico          -0.2351      0.261     -0.902      0.367      -0.746       0.276
+Score_Tecnico          -0.7695      0.300     -2.567      0.010      -1.357      -0.182
+Score_Participativo    -0.5189      0.282     -1.842      0.065      -1.071       0.033
+=======================================================================================
+   - Accuracy: 0.8228
+   - Umbral Óptimo (Índice de Youden): 0.7774
+
+6. ENSAMBLES AVANZADOS (GRADIENT BOOSTING):
+   - Accuracy: 0.7468
+   - SHAP Global (Impacto por Dimensión):
+      Critico         | 0.2906 | ##############
+      Tecnico         | 0.5098 | #########################
+      Participativo   | 0.1995 | #########
+
+7. SEGMENTACIÓN MULTIALGORITMO:
+   [K-Means]:
+     - Grupo 0 (N=73): Crit=2.14, Tec=2.05, Part=2.00 | RIESGO=95.89%
+     - Grupo 1 (N=123): Crit=2.88, Tec=2.84, Part=2.91 | RIESGO=79.67%
+     - Grupo 2 (N=67): Crit=3.77, Tec=3.81, Part=3.71 | RIESGO=40.30%
+   [Jerarquico-Ward]:
+     - Grupo 0 (N=96): Crit=2.12, Tec=2.26, Part=2.31 | RIESGO=94.79%
+     - Grupo 1 (N=120): Crit=3.11, Tec=2.95, Part=2.93 | RIESGO=72.50%
+     - Grupo 2 (N=47): Crit=3.96, Tec=3.90, Part=3.83 | RIESGO=36.17%
+   [DBSCAN]:
+     - Grupo 0 (N=5): Crit=2.38, Tec=2.26, Part=2.02 | RIESGO=100.00%
+     - Grupo 1 (N=10): Crit=2.75, Tec=2.59, Part=2.79 | RIESGO=90.00%
+     - Grupo 2 (N=19): Crit=2.94, Tec=2.67, Part=2.32 | RIESGO=89.47%
+     - Grupo 3 (N=7): Crit=3.54, Tec=3.31, Part=3.31 | RIESGO=42.86%
+     - Grupo 4 (N=7): Crit=3.20, Tec=3.60, Part=3.34 | RIESGO=28.57%
+     - Grupo 5 (N=4): Crit=2.40, Tec=2.12, Part=2.27 | RIESGO=100.00%
+     - Grupo 6 (N=7): Crit=2.31, Tec=2.40, Part=3.16 | RIESGO=85.71%
+     - Grupo 7 (N=9): Crit=2.81, Tec=2.97, Part=3.29 | RIESGO=44.44%
+     - Grupo 8 (N=5): Crit=3.34, Tec=2.98, Part=3.04 | RIESGO=80.00%
+   [GMM]:
+     - Grupo 0 (N=80): Crit=3.71, Tec=3.72, Part=3.60 | RIESGO=42.50%
+     - Grupo 1 (N=134): Crit=2.74, Tec=2.72, Part=2.80 | RIESGO=84.33%
+     - Grupo 2 (N=49): Crit=2.02, Tec=1.88, Part=1.84 | RIESGO=97.96%
+
+8. EXPLAINABLE AI (XAI) GRANULAR (TOP 10 ÍTEMS):
+     1. T4: Impacto 0.3503
+     2. T7: Impacto 0.3382
+     3. C6: Impacto 0.2441
+     4. T10: Impacto 0.2410
+     5. T6: Impacto 0.1953
+     6. P2: Impacto 0.1577
+     7. P1: Impacto 0.1475
+     8. P5: Impacto 0.1339
+     9. C4: Impacto 0.1147
+     10. T1: Impacto 0.1134
+
+============================================================
+
+============================================================
+EJECUCIÓN: 2026-04-27 14:53:41
+Entorno: Híbrido (Restauración Doctoral) | Registros: 263 | Accuracy: 0.82
+------------------------------------------------------------
+RESULTADOS DETALLADOS:
+1. PSICOMETRÍA (CONSISTENCIA INTERNA):
+       Dimension  Cronbach_Alpha  McDonald_Omega          CI_95%
+0        Critico        0.867892        0.885250  [0.843, 0.890]
+1        Tecnico        0.862111        0.879354  [0.836, 0.886]
+2  Participativo        0.865071        0.882373  [0.839, 0.888]
+
+2. AUDITORÍA DE CALIDAD (INCONSISTENCIAS):
+   - Casos Sospechosos Detectados: 0
+   - Metodología: Filtrado semántico mediante HybridIntegrator.
+
+3. CONTRASTES SOCIODEMOGRÁFICOS:
+   - Sexo                     : Estadístico=0.2071, p-valor=0.8361
+   - Universidad              : Estadístico=0.6044, p-valor=0.5471
+
+4. ASOCIACIONES BIVARIADAS (AMI vs RIESGO):
+   - Score_Critico       : Pearson_r=-0.381 (p=0.0000) | Spearman_rho=-0.393
+   - Score_Tecnico       : Pearson_r=-0.482 (p=0.0000) | Spearman_rho=-0.482
+   - Score_Participativo : Pearson_r=-0.441 (p=0.0000) | Spearman_rho=-0.439
+   - Score_AMI_Global    : Pearson_r=-0.507 (p=0.0000) | Spearman_rho=-0.516
+
+5. MODELO DE REGRESIÓN LOGÍSTICA (INFERENCIA CIENTÍFICA):
+- Resumen Completo del Modelo:
+                           Logit Regression Results                           
+==============================================================================
+Dep. Variable:           Riesgo_Total   No. Observations:                  184
+Model:                          Logit   Df Residuals:                      180
+Method:                           MLE   Df Model:                            3
+Date:                Mon, 27 Apr 2026   Pseudo R-squ.:                  0.2084
+Time:                        14:53:13   Log-Likelihood:                -81.902
+converged:                       True   LL-Null:                       -103.47
+Covariance Type:            nonrobust   LLR p-value:                 2.304e-09
+=======================================================================================
+                          coef    std err          z      P>|z|      [0.025      0.975]
+---------------------------------------------------------------------------------------
+const                   1.4860      0.225      6.594      0.000       1.044       1.928
+Score_Critico          -0.2351      0.261     -0.902      0.367      -0.746       0.276
+Score_Tecnico          -0.7695      0.300     -2.567      0.010      -1.357      -0.182
+Score_Participativo    -0.5189      0.282     -1.842      0.065      -1.071       0.033
+=======================================================================================
+   - Accuracy: 0.8228
+   - Umbral Óptimo (Índice de Youden): 0.7774
+
+6. ENSAMBLES AVANZADOS (GRADIENT BOOSTING):
+   - Accuracy: 0.7468
+   - SHAP Global (Impacto por Dimensión):
+      Critico         | 0.2906 | ##############
+      Tecnico         | 0.5098 | #########################
+      Participativo   | 0.1995 | #########
+
+7. SEGMENTACIÓN MULTIALGORITMO:
+   [K-Means]:
+     - Grupo 0 (N=73): Crit=2.14, Tec=2.05, Part=2.00 | RIESGO=95.89%
+     - Grupo 1 (N=123): Crit=2.88, Tec=2.84, Part=2.91 | RIESGO=79.67%
+     - Grupo 2 (N=67): Crit=3.77, Tec=3.81, Part=3.71 | RIESGO=40.30%
+   [Jerarquico-Ward]:
+     - Grupo 0 (N=96): Crit=2.12, Tec=2.26, Part=2.31 | RIESGO=94.79%
+     - Grupo 1 (N=120): Crit=3.11, Tec=2.95, Part=2.93 | RIESGO=72.50%
+     - Grupo 2 (N=47): Crit=3.96, Tec=3.90, Part=3.83 | RIESGO=36.17%
+   [DBSCAN]:
+     - Grupo 0 (N=5): Crit=2.38, Tec=2.26, Part=2.02 | RIESGO=100.00%
+     - Grupo 1 (N=10): Crit=2.75, Tec=2.59, Part=2.79 | RIESGO=90.00%
+     - Grupo 2 (N=19): Crit=2.94, Tec=2.67, Part=2.32 | RIESGO=89.47%
+     - Grupo 3 (N=7): Crit=3.54, Tec=3.31, Part=3.31 | RIESGO=42.86%
+     - Grupo 4 (N=7): Crit=3.20, Tec=3.60, Part=3.34 | RIESGO=28.57%
+     - Grupo 5 (N=4): Crit=2.40, Tec=2.12, Part=2.27 | RIESGO=100.00%
+     - Grupo 6 (N=7): Crit=2.31, Tec=2.40, Part=3.16 | RIESGO=85.71%
+     - Grupo 7 (N=9): Crit=2.81, Tec=2.97, Part=3.29 | RIESGO=44.44%
+     - Grupo 8 (N=5): Crit=3.34, Tec=2.98, Part=3.04 | RIESGO=80.00%
+   [GMM]:
+     - Grupo 0 (N=80): Crit=3.71, Tec=3.72, Part=3.60 | RIESGO=42.50%
+     - Grupo 1 (N=134): Crit=2.74, Tec=2.72, Part=2.80 | RIESGO=84.33%
+     - Grupo 2 (N=49): Crit=2.02, Tec=1.88, Part=1.84 | RIESGO=97.96%
+
+8. EXPLAINABLE AI (XAI) GRANULAR (TOP 10 ÍTEMS):
+     1. T4: Impacto 0.3503
+     2. T7: Impacto 0.3382
+     3. C6: Impacto 0.2441
+     4. T10: Impacto 0.2410
+     5. T6: Impacto 0.1953
+     6. P2: Impacto 0.1577
+     7. P1: Impacto 0.1475
+     8. P5: Impacto 0.1339
+     9. C4: Impacto 0.1147
+     10. T1: Impacto 0.1134
+
+============================================================
+
+============================================================
+EJECUCIÓN: 2026-04-27 15:08:03
+Entorno: Híbrido (Restauración Doctoral) | Registros: 263 | Accuracy: 0.86
+------------------------------------------------------------
+RESULTADOS DETALLADOS:
+1. PSICOMETRÍA (CONSISTENCIA INTERNA):
+       Dimension  Cronbach_Alpha  McDonald_Omega          CI_95%
+0        Critico        0.867892        0.885250  [0.843, 0.890]
+1        Tecnico        0.862111        0.879354  [0.836, 0.886]
+2  Participativo        0.865071        0.882373  [0.839, 0.888]
+
+2. AUDITORÍA DE CALIDAD (INCONSISTENCIAS):
+   - Casos Sospechosos Detectados: 0
+   - Metodología: Filtrado semántico mediante HybridIntegrator.
+
+3. CONTRASTES SOCIODEMOGRÁFICOS:
+   - Sexo                     : Estadístico=0.2071, p-valor=0.8361
+   - Universidad              : Estadístico=0.6044, p-valor=0.5471
+
+4. ASOCIACIONES BIVARIADAS (AMI vs RIESGO):
+   - Score_Critico       : Pearson_r=-0.399 (p=0.0000) | Spearman_rho=-0.410
+   - Score_Tecnico       : Pearson_r=-0.489 (p=0.0000) | Spearman_rho=-0.488
+   - Score_Participativo : Pearson_r=-0.432 (p=0.0000) | Spearman_rho=-0.426
+   - Score_AMI_Global    : Pearson_r=-0.513 (p=0.0000) | Spearman_rho=-0.522
+
+5. MODELO DE REGRESIÓN LOGÍSTICA (INFERENCIA CIENTÍFICA):
+- Resumen Completo del Modelo:
+                           Logit Regression Results                           
+==============================================================================
+Dep. Variable:           Riesgo_Total   No. Observations:                  184
+Model:                          Logit   Df Residuals:                      180
+Method:                           MLE   Df Model:                            3
+Date:                Mon, 27 Apr 2026   Pseudo R-squ.:                  0.2366
+Time:                        15:07:32   Log-Likelihood:                -72.552
+converged:                       True   LL-Null:                       -95.043
+Covariance Type:            nonrobust   LLR p-value:                 9.335e-10
+=======================================================================================
+                          coef    std err          z      P>|z|      [0.025      0.975]
+---------------------------------------------------------------------------------------
+const                   1.8380      0.259      7.089      0.000       1.330       2.346
+Score_Critico          -0.3933      0.282     -1.393      0.164      -0.947       0.160
+Score_Tecnico          -0.8490      0.321     -2.642      0.008      -1.479      -0.219
+Score_Participativo    -0.4287      0.302     -1.421      0.155      -1.020       0.163
+=======================================================================================
+   - Accuracy: 0.8608
+   - Umbral Óptimo (Índice de Youden): 0.8137
+
+6. ENSAMBLES AVANZADOS (GRADIENT BOOSTING):
+   - Accuracy: 0.6962
+   - SHAP Global (Impacto por Dimensión):
+      Critico         | 0.2268 | ###########
+      Tecnico         | 0.6360 | ###############################
+      Participativo   | 0.1372 | ######
+
+7. SEGMENTACIÓN MULTIALGORITMO:
+   [K-Means]:
+     - Grupo 0 (N=73): Crit=2.14, Tec=2.05, Part=2.00 | RIESGO=98.63%
+     - Grupo 1 (N=123): Crit=2.88, Tec=2.84, Part=2.91 | RIESGO=82.93%
+     - Grupo 2 (N=67): Crit=3.77, Tec=3.81, Part=3.71 | RIESGO=43.28%
+   [Jerarquico-Ward]:
+     - Grupo 0 (N=96): Crit=2.12, Tec=2.26, Part=2.31 | RIESGO=95.83%
+     - Grupo 1 (N=120): Crit=3.11, Tec=2.95, Part=2.93 | RIESGO=76.67%
+     - Grupo 2 (N=47): Crit=3.96, Tec=3.90, Part=3.83 | RIESGO=40.43%
+   [DBSCAN]:
+     - Grupo 0 (N=5): Crit=2.38, Tec=2.26, Part=2.02 | RIESGO=100.00%
+     - Grupo 1 (N=10): Crit=2.75, Tec=2.59, Part=2.79 | RIESGO=100.00%
+     - Grupo 2 (N=19): Crit=2.94, Tec=2.67, Part=2.32 | RIESGO=94.74%
+     - Grupo 3 (N=7): Crit=3.54, Tec=3.31, Part=3.31 | RIESGO=42.86%
+     - Grupo 4 (N=7): Crit=3.20, Tec=3.60, Part=3.34 | RIESGO=28.57%
+     - Grupo 5 (N=4): Crit=2.40, Tec=2.12, Part=2.27 | RIESGO=100.00%
+     - Grupo 6 (N=7): Crit=2.31, Tec=2.40, Part=3.16 | RIESGO=85.71%
+     - Grupo 7 (N=9): Crit=2.81, Tec=2.97, Part=3.29 | RIESGO=66.67%
+     - Grupo 8 (N=5): Crit=3.34, Tec=2.98, Part=3.04 | RIESGO=80.00%
+   [GMM]:
+     - Grupo 0 (N=80): Crit=3.71, Tec=3.72, Part=3.60 | RIESGO=45.00%
+     - Grupo 1 (N=134): Crit=2.74, Tec=2.72, Part=2.80 | RIESGO=88.81%
+     - Grupo 2 (N=49): Crit=2.02, Tec=1.88, Part=1.84 | RIESGO=97.96%
+
+8. EXPLAINABLE AI (XAI) GRANULAR (TOP 10 ÍTEMS):
+     1. T4: Impacto 0.5003
+     2. T7: Impacto 0.3658
+     3. C10: Impacto 0.2215
+     4. P5: Impacto 0.1910
+     5. P1: Impacto 0.1758
+     6. P3: Impacto 0.1484
+     7. C1: Impacto 0.1312
+     8. P10: Impacto 0.1148
+     9. T8: Impacto 0.1135
+     10. T9: Impacto 0.1095
+
+============================================================
+
+============================================================
+EJECUCIÓN: 2026-04-27 15:11:15
+Entorno: Híbrido (Restauración Doctoral) | Registros: 263 | Accuracy: 0.86
+------------------------------------------------------------
+RESULTADOS DETALLADOS:
+1. PSICOMETRÍA (CONSISTENCIA INTERNA):
+       Dimension  Cronbach_Alpha  McDonald_Omega          CI_95%
+0        Critico        0.867892        0.885250  [0.843, 0.890]
+1        Tecnico        0.862111        0.879354  [0.836, 0.886]
+2  Participativo        0.865071        0.882373  [0.839, 0.888]
+
+2. AUDITORÍA DE CALIDAD (INCONSISTENCIAS):
+   - Casos Sospechosos Detectados: 0
+   - Metodología: Filtrado semántico mediante HybridIntegrator.
+
+3. CONTRASTES SOCIODEMOGRÁFICOS:
+   - Sexo                     : Estadístico=0.2071, p-valor=0.8361
+   - Universidad              : Estadístico=0.6044, p-valor=0.5471
+
+4. ASOCIACIONES BIVARIADAS (AMI vs RIESGO):
+   - Score_Critico       : Pearson_r=-0.399 (p=0.0000) | Spearman_rho=-0.410
+   - Score_Tecnico       : Pearson_r=-0.489 (p=0.0000) | Spearman_rho=-0.488
+   - Score_Participativo : Pearson_r=-0.432 (p=0.0000) | Spearman_rho=-0.426
+   - Score_AMI_Global    : Pearson_r=-0.513 (p=0.0000) | Spearman_rho=-0.522
+
+5. MODELO DE REGRESIÓN LOGÍSTICA (INFERENCIA CIENTÍFICA):
+- Resumen Completo del Modelo:
+                           Logit Regression Results                           
+==============================================================================
+Dep. Variable:           Riesgo_Total   No. Observations:                  184
+Model:                          Logit   Df Residuals:                      180
+Method:                           MLE   Df Model:                            3
+Date:                Mon, 27 Apr 2026   Pseudo R-squ.:                  0.2366
+Time:                        15:10:41   Log-Likelihood:                -72.552
+converged:                       True   LL-Null:                       -95.043
+Covariance Type:            nonrobust   LLR p-value:                 9.335e-10
+=======================================================================================
+                          coef    std err          z      P>|z|      [0.025      0.975]
+---------------------------------------------------------------------------------------
+const                   1.8380      0.259      7.089      0.000       1.330       2.346
+Score_Critico          -0.3933      0.282     -1.393      0.164      -0.947       0.160
+Score_Tecnico          -0.8490      0.321     -2.642      0.008      -1.479      -0.219
+Score_Participativo    -0.4287      0.302     -1.421      0.155      -1.020       0.163
+=======================================================================================
+
+- MÉTRICAS DE EVALUACIÓN DE CLASIFICACIÓN:
+   * Accuracy: 0.8608
+   * ROC-AUC:  0.9195
+   * Precision (Riesgo): 0.9608
+   * Recall (Riesgo):    0.8448
+   * F1-Score (Riesgo):  0.8991
+
+- MATRIZ DE CONFUSIÓN:
+        Pred=0  Pred=1
+True=0  19      2     
+True=1  9       49    
+
+   * Umbral Óptimo (Índice de Youden): 0.8137
+
+6. ENSAMBLES AVANZADOS (GRADIENT BOOSTING):
+   - Accuracy: 0.6962
+   - ROC-AUC:  0.8169
+   - F1-Score (Riesgo): 0.7447
+   - SHAP Global (Impacto por Dimensión):
+      Critico         | 0.2268 | ###########
+      Tecnico         | 0.6360 | ###############################
+      Participativo   | 0.1372 | ######
+
+7. SEGMENTACIÓN MULTIALGORITMO:
+   [K-Means]:
+     - Grupo 0 (N=73): Crit=2.14, Tec=2.05, Part=2.00 | RIESGO=98.63%
+     - Grupo 1 (N=123): Crit=2.88, Tec=2.84, Part=2.91 | RIESGO=82.93%
+     - Grupo 2 (N=67): Crit=3.77, Tec=3.81, Part=3.71 | RIESGO=43.28%
+   [Jerarquico-Ward]:
+     - Grupo 0 (N=96): Crit=2.12, Tec=2.26, Part=2.31 | RIESGO=95.83%
+     - Grupo 1 (N=120): Crit=3.11, Tec=2.95, Part=2.93 | RIESGO=76.67%
+     - Grupo 2 (N=47): Crit=3.96, Tec=3.90, Part=3.83 | RIESGO=40.43%
+   [DBSCAN]:
+     - Grupo 0 (N=5): Crit=2.38, Tec=2.26, Part=2.02 | RIESGO=100.00%
+     - Grupo 1 (N=10): Crit=2.75, Tec=2.59, Part=2.79 | RIESGO=100.00%
+     - Grupo 2 (N=19): Crit=2.94, Tec=2.67, Part=2.32 | RIESGO=94.74%
+     - Grupo 3 (N=7): Crit=3.54, Tec=3.31, Part=3.31 | RIESGO=42.86%
+     - Grupo 4 (N=7): Crit=3.20, Tec=3.60, Part=3.34 | RIESGO=28.57%
+     - Grupo 5 (N=4): Crit=2.40, Tec=2.12, Part=2.27 | RIESGO=100.00%
+     - Grupo 6 (N=7): Crit=2.31, Tec=2.40, Part=3.16 | RIESGO=85.71%
+     - Grupo 7 (N=9): Crit=2.81, Tec=2.97, Part=3.29 | RIESGO=66.67%
+     - Grupo 8 (N=5): Crit=3.34, Tec=2.98, Part=3.04 | RIESGO=80.00%
+   [GMM]:
+     - Grupo 0 (N=80): Crit=3.71, Tec=3.72, Part=3.60 | RIESGO=45.00%
+     - Grupo 1 (N=134): Crit=2.74, Tec=2.72, Part=2.80 | RIESGO=88.81%
+     - Grupo 2 (N=49): Crit=2.02, Tec=1.88, Part=1.84 | RIESGO=97.96%
+
+8. EXPLAINABLE AI (XAI) GRANULAR (TOP 10 ÍTEMS):
+     1. T4: Impacto 0.5003
+     2. T7: Impacto 0.3658
+     3. C10: Impacto 0.2215
+     4. P5: Impacto 0.1910
+     5. P1: Impacto 0.1758
+     6. P3: Impacto 0.1484
+     7. C1: Impacto 0.1312
+     8. P10: Impacto 0.1148
+     9. T8: Impacto 0.1135
+     10. T9: Impacto 0.1095
+
+============================================================
