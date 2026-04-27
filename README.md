@@ -94,7 +94,34 @@ Al terminar, debes dirigirte a `data/outputs/reports/`. Allí encontrarás los 7
 
 ---
 
-## 🧠 5. Consideraciones Técnicas para el Tercero
+## 🛠️ 6. Control de Versiones (GitHub)
+
+Este proyecto está bajo control de versiones con Git. Si vas a colaborar o realizar cambios:
+
+### 6.1. Clonar el Repositorio
+```bash
+git clone https://github.com/jchipocov/ami-virtu-cristian-phd.git
+cd ami-virtu-cristian-phd
+```
+
+### 6.2. Flujo de Trabajo
+Cada vez que realices una mejora o proceses nuevos datos:
+```bash
+git add .
+git commit -m "Descripción de los cambios realizados"
+git push origin main
+```
+
+### 6.3. Seguridad (Gitignore)
+El archivo `.gitignore` está configurado para **NUNCA** subir:
+- El entorno virtual (`venv/`).
+- Archivos temporales o de caché.
+- Tu API KEY (archivo `.env`).
+*Se asegura la persistencia de la Bitácora de Ejecuciones como respaldo doctoral.*
+
+---
+
+## 🧠 7. Consideraciones Técnicas para el Tercero
 
 - **Hardening de Datos:** El sistema anonimiza automáticamente cualquier dato personal (PII Filter).
 - **Inversión de Ítems:** No te preocupes por las preguntas negativas (C6, T6, P5), el código las invierte automáticamente (`6 - valor`) antes de cualquier cálculo.
