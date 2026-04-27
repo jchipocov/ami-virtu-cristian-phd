@@ -1,6 +1,6 @@
 # Plan de Capacitación: Programa de Acompañamiento Doctoral AMI-VIRTU 🎓📚
 
-Ante la complejidad técnica del proyecto y el perfil no-tecnológico del investigador, se propone un **Diplomado Intensivo de Acompañamiento de 32 Horas Reales**. Este programa está diseñado para ejecutarse de forma **paralela a la recolección de datos de campo**, utilizando el simulador como laboratorio de pruebas.
+Ante la complejidad técnica del proyecto se debe brindar acompañamiento al investigador para lo cual se propone una **Capacitación Intensiva de Acompañamiento de 32 Horas Reales**. Este programa está diseñado para ejecutarse de forma **paralela a la recolección de datos de campo**, utilizando el simulador como laboratorio de pruebas.
 
 ---
 
