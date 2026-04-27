@@ -34,11 +34,38 @@ learning_analytics_ami/
 
 ---
 
-## 🛠️ 2. Configuración del Entorno (Paso a Paso)
+## 🛠️ 2. Control de Versiones (GitHub)
+
+Este proyecto está bajo control de versiones con Git. Si vas a colaborar o realizar cambios:
+
+### 2.1. Clonar el Repositorio
+```bash
+git clone https://github.com/jchipocov/ami-virtu-cristian-phd.git
+cd ami-virtu-cristian-phd
+```
+
+### 2.2. Flujo de Trabajo
+Cada vez que realices una mejora o proceses nuevos datos:
+```bash
+git add .
+git commit -m "Descripción de los cambios realizados"
+git push origin main
+```
+
+### 2.3. Seguridad (Gitignore)
+El archivo `.gitignore` está configurado para **NUNCA** subir:
+- El entorno virtual (`venv/`).
+- Archivos temporales o de caché.
+- Tu API KEY (archivo `.env`).
+*Se asegura la persistencia de la Bitácora de Ejecuciones como respaldo doctoral.*
+
+---
+
+## ⚙️ 3. Configuración del Entorno (Paso a Paso)
 
 Este proyecto requiere **Python 3.11** o superior. Sigue estos pasos para prepararlo:
 
-### 2.1. Crear el Entorno Virtual (Venv)
+### 3.1. Crear el Entorno Virtual (Venv)
 Es vital para no ensuciar tu instalación global de Python:
 ```bash
 # En Windows (PowerShell):
@@ -50,13 +77,13 @@ python3 -m venv venv
 source venv/bin/activate
 ```
 
-### 2.2. Instalar el Ecosistema Científico
+### 3.2. Instalar el Ecosistema Científico
 Instala todas las dependencias necesarias (`pandas`, `scipy`, `statsmodels`, `shap`, `google-generativeai`, etc.):
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2.3. Configuración de API (Opcional - Síntesis Narrativa)
+### 3.3. Configuración de API (Opcional - Síntesis Narrativa)
 El sistema utiliza **Gemini Pro/Flash** para la síntesis narrativa final. Si deseas que los reportes incluyan conclusiones agénticas redactadas por la IA:
 1. Crea un archivo `.env` en la raíz (o usa variables de entorno).
 2. Añade tu API Key: `GOOGLE_API_KEY=tu_clave_aqui`.
@@ -64,7 +91,7 @@ El sistema utiliza **Gemini Pro/Flash** para la síntesis narrativa final. Si de
 
 ---
 
-## 🚀 3. Manual de Operación
+## 🚀 4. Manual de Operación
 
 ### Escenario A: Generar Nuevos Datos
 Si quieres ver cómo el simulador crea a los 295 estudiantes ficticios con sus respuestas de "Section B":
@@ -80,7 +107,7 @@ python main.py
 
 ---
 
-## 📊 4. ¿Qué obtendrás tras la ejecución?
+## 📊 5. ¿Qué obtendrás tras la ejecución?
 
 Al terminar, debes dirigirte a `data/outputs/reports/`. Allí encontrarás los 7 pilares de la investigación:
 
@@ -94,34 +121,7 @@ Al terminar, debes dirigirte a `data/outputs/reports/`. Allí encontrarás los 7
 
 ---
 
-## 🛠️ 6. Control de Versiones (GitHub)
-
-Este proyecto está bajo control de versiones con Git. Si vas a colaborar o realizar cambios:
-
-### 6.1. Clonar el Repositorio
-```bash
-git clone https://github.com/jchipocov/ami-virtu-cristian-phd.git
-cd ami-virtu-cristian-phd
-```
-
-### 6.2. Flujo de Trabajo
-Cada vez que realices una mejora o proceses nuevos datos:
-```bash
-git add .
-git commit -m "Descripción de los cambios realizados"
-git push origin main
-```
-
-### 6.3. Seguridad (Gitignore)
-El archivo `.gitignore` está configurado para **NUNCA** subir:
-- El entorno virtual (`venv/`).
-- Archivos temporales o de caché.
-- Tu API KEY (archivo `.env`).
-*Se asegura la persistencia de la Bitácora de Ejecuciones como respaldo doctoral.*
-
----
-
-## 🧠 7. Consideraciones Técnicas para el Tercero
+## 🧠 6. Consideraciones Técnicas para el Tercero
 
 - **Hardening de Datos:** El sistema anonimiza automáticamente cualquier dato personal (PII Filter).
 - **Inversión de Ítems:** No te preocupes por las preguntas negativas (C6, T6, P5), el código las invierte automáticamente (`6 - valor`) antes de cualquier cálculo.
