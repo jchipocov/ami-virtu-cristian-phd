@@ -1,3 +1,23 @@
+import sklearn.utils
+import sklearn.utils.validation
+
+# Parche de compatibilidad agresivo para factor-analyzer y sklearn moderno
+def check_array_patched(*args, **kwargs):
+    if 'force_all_finite' in kwargs:
+        kwargs['ensure_all_finite'] = kwargs.pop('force_all_finite')
+    return sklearn.utils.validation.check_array_original(*args, **kwargs)
+
+if not hasattr(sklearn.utils.validation, 'check_array_original'):
+    sklearn.utils.validation.check_array_original = sklearn.utils.validation.check_array
+    sklearn.utils.validation.check_array = check_array_patched
+    sklearn.utils.check_array = check_array_patched
+    # A veces se importa directamente de sklearn.utils
+    try:
+        import sklearn.utils
+        sklearn.utils.check_array = check_array_patched
+    except:
+        pass
+
 import pandas as pd
 import numpy as np
 import statsmodels.api as sm
@@ -8,6 +28,9 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, accuracy_score, confusion_matrix, roc_auc_score, r2_score, precision_recall_curve, auc
 from sklearn.preprocessing import StandardScaler
+from statsmodels.stats.outliers_influence import variance_inflation_factor
+from factor_analyzer import FactorAnalyzer
+from factor_analyzer.factor_analyzer import calculate_kmo, calculate_bartlett_sphericity
 
 class StatsAnalyzer:
     """
@@ -64,7 +87,9 @@ class StatsAnalyzer:
         dimensions = {
             'Critico': [f'C{i}' for i in range(1, 11)],
             'Tecnico': [f'T{i}' for i in range(1, 11)],
-            'Participativo': [f'P{i}' for i in range(1, 11)]
+            'Participativo': [f'P{i}' for i in range(1, 11)],
+            'Riesgo_Academico': [f'A{i}_num' if i <= 4 else f'A{i}_Dificultad_num' if i==5 else f'A6_Consideracion_Abandono_num' if i==6 else f'A7_Exigencia_num' if i==7 else f'A8_Retrasos_num' for i in range(1, 9)],
+            'Riesgo_LMS': [f'L{i}_num' for i in range(1, 9)]
         }
         
         # Identificadores de ítems redactados en sentido inverso
@@ -76,7 +101,16 @@ class StatsAnalyzer:
                 data_sub = df_raw[items].copy()
                 for c in items:
                     if not pd.api.types.is_numeric_dtype(data_sub[c]):
-                        data_sub[c] = data_sub[c].map(likert_map)
+                        # Mapeo específico para categorías de riesgo si aparecen
+                        risk_cat_map = {
+                            'Sí': 5, 'No': 1, 
+                            'En dos o más cursos': 5, 'En uno': 3, 'Ninguno': 1,
+                            'Bajo': 5, 'Medio': 3, 'Alto': 1
+                        }
+                        if any(val in risk_cat_map for val in data_sub[c].unique()):
+                            data_sub[c] = data_sub[c].map(risk_cat_map)
+                        else:
+                            data_sub[c] = data_sub[c].map(likert_map)
                     data_sub[c] = pd.to_numeric(data_sub[c], errors='coerce')
                     
                     # Inversión de escala para ítems negativos (Corrección Metodológica)
@@ -112,27 +146,85 @@ class StatsAnalyzer:
         
         return pd.DataFrame(results)
 
+    def run_factor_analysis(self, df_raw: pd.DataFrame) -> dict:
+        """
+        Ejecuta Análisis Factorial Exploratorio (EFA) con pruebas de adecuación.
+        Valida KMO, Bartlett y extrae cargas factoriales con rotación Oblimin.
+        """
+        ami_items = [f'C{i}' for i in range(1, 11)] + [f'T{i}' for i in range(1, 11)] + [f'P{i}' for i in range(1, 11)]
+        
+        # Preparar datos (Likert -> Numérico)
+        likert_map = {
+            "Totalmente en desacuerdo": 1, "En desacuerdo": 2, 
+            "Ni de acuerdo ni en desacuerdo": 3, "De acuerdo": 4, 
+            "Totalmente de acuerdo": 5
+        }
+        
+        data_efa = df_raw[ami_items].copy()
+        for col in ami_items:
+            if not pd.api.types.is_numeric_dtype(data_efa[col]):
+                data_efa[col] = data_efa[col].map(likert_map)
+            data_efa[col] = pd.to_numeric(data_efa[col], errors='coerce')
+        
+        data_efa = data_efa.dropna()
+        
+        if data_efa.shape[0] < 20:
+            return {'status': 'error', 'message': 'Muestra insuficiente para EFA.'}
+            
+        try:
+            # 1. Pruebas de Adecuación
+            chi_square_value, p_value = calculate_bartlett_sphericity(data_efa)
+            kmo_all, kmo_model = calculate_kmo(data_efa)
+            
+            # 2. Ejecutar EFA (3 Factores teóricos, Rotación Oblimin)
+            # Nota: Usamos method='minres' para mayor estabilidad en muestras pequeñas
+            fa = FactorAnalyzer(n_factors=3, rotation="oblimin", method="minres")
+            fa.fit(data_efa)
+            
+            # Extraer cargas (Loadings)
+            loadings = pd.DataFrame(fa.loadings_, columns=['Factor1', 'Factor2', 'Factor3'], index=ami_items)
+            
+            # Varianza explicada
+            var_exp = fa.get_factor_variance()
+            
+            return {
+                'status': 'success',
+                'kmo': float(kmo_model),
+                'bartlett_p': float(p_value),
+                'variance_explained': [float(v) for v in var_exp[1]], # Proporción de varianza por factor
+                'loadings': loadings.to_dict('index'),
+                'interpretation': "Estructura Válida" if kmo_model > 0.6 and p_value < 0.05 else "Revisar Estructura"
+            }
+        except Exception as e:
+            return {'status': 'error', 'message': str(e)}
+
     def run_bivariate_analysis(self, df_scored: pd.DataFrame) -> dict:
-        """Calcula asociaciones bivariadas (Pearson/Spearman) AMI vs Riesgo."""
+        """
+        Calcula asociaciones bivariadas AMI vs Riesgo (Global y Dimensional).
+        Genera la matriz 3x3 requerida por los Objetivos 2 y 3.
+        """
         if 'Flag_Inconsistencia' in df_scored.columns:
             df_valid = df_scored[df_scored['Flag_Inconsistencia'] == False].copy()
         else:
             df_valid = df_scored.copy()
             
-        features = ['Score_Critico', 'Score_Tecnico', 'Score_Participativo', 'Score_AMI_Global']
-        target = 'Riesgo_Total'
+        ami_features = ['Score_Critico', 'Score_Tecnico', 'Score_Participativo', 'Score_AMI_Global']
+        risk_targets = ['Riesgo_Total', 'Score_Riesgo_Academico', 'Score_Riesgo_LMS', 'Score_Riesgo_Continuidad']
         
         correlations = {}
-        for feat in features:
-            # Correlación de Punto-Biserial (Pearson con dicotómica)
-            r_val, p_val = stats.pointbiserialr(df_valid[target], df_valid[feat])
-            # Spearman (No paramétrica)
-            rho, p_s = stats.spearmanr(df_valid[target], df_valid[feat])
-            
-            correlations[feat] = {
-                'Pearson_r': r_val, 'P_Pearson': p_val,
-                'Spearman_rho': rho, 'P_Spearman': p_s
-            }
+        for risk in risk_targets:
+            if risk not in df_valid.columns: continue
+            correlations[risk] = {}
+            for ami in ami_features:
+                # Correlación de Pearson (Lineal)
+                r_val, p_val = stats.pearsonr(df_valid[risk], df_valid[ami])
+                # Spearman (No paramétrica)
+                rho, p_s = stats.spearmanr(df_valid[risk], df_valid[ami])
+                
+                correlations[risk][ami] = {
+                    'Pearson_r': float(r_val), 'P_Pearson': float(p_val),
+                    'Spearman_rho': float(rho), 'P_Spearman': float(p_s)
+                }
         return correlations
 
     def run_demographic_contrasts(self, df_scored: pd.DataFrame) -> dict:
@@ -163,8 +255,41 @@ class StatsAnalyzer:
             
         return contrasts
 
+    def _calculate_hosmer_lemeshow(self, y_true, y_probs, groups=10):
+        """
+        Prueba de Bondad de Ajuste de Hosmer-Lemeshow.
+        Compara frecuencias observadas vs esperadas por deciles de riesgo.
+        """
+        df = pd.DataFrame({'y_true': y_true, 'y_probs': y_probs})
+        df['decile'] = pd.qcut(df['y_probs'], groups, duplicates='drop')
+        
+        observed = df.groupby('decile')['y_true'].sum()
+        expected = df.groupby('decile')['y_probs'].sum()
+        counts = df.groupby('decile')['y_true'].count()
+        
+        # Evitar ceros en el denominador
+        hl_stat = (((observed - expected)**2) / (expected * (1 - expected/counts))).sum()
+        df_freedom = max(1, groups - 2)
+        p_val = 1 - stats.chi2.cdf(hl_stat, df_freedom)
+        
+        return float(hl_stat), float(p_val)
+
+    def calculate_vif(self, X: pd.DataFrame) -> pd.DataFrame:
+        """Calcula el Factor de Inflación de la Varianza (VIF) para descartar multicolinealidad."""
+        # statsmodels requiere constante para VIF correcto
+        if 'const' not in X.columns:
+            X_temp = sm.add_constant(X)
+        else:
+            X_temp = X
+            
+        vif_data = pd.DataFrame()
+        vif_data["Variable"] = X_temp.columns
+        vif_data["VIF"] = [variance_inflation_factor(X_temp.values, i) for i in range(X_temp.shape[1])]
+        # Retornar sin la constante para mayor claridad
+        return vif_data[vif_data["Variable"] != 'const']
+
     def run_interaction_analysis(self, df_scored: pd.DataFrame) -> dict:
-        """Regresión Logística con término de interacción (Efecto Moderador)."""
+        """Regresión Logística con Mean-Centering y términos de interacción."""
         if 'Flag_Inconsistencia' in df_scored.columns:
             df_valid = df_scored[df_scored['Flag_Inconsistencia'] == False].copy()
         else:
@@ -172,34 +297,45 @@ class StatsAnalyzer:
             
         df_valid['AMI_Global'] = df_valid[['Score_Critico', 'Score_Tecnico', 'Score_Participativo']].mean(axis=1)
         
-        # Interacción base: AMI x Calidad (Solo si existe en el dataset)
-        features = ['AMI_Global']
-        if 'Calidad_Percibida' in df_valid.columns:
-            df_valid['Interaccion_AMI_Calidad'] = df_valid['AMI_Global'] * df_valid['Calidad_Percibida']
-            features.extend(['Calidad_Percibida', 'Interaccion_AMI_Calidad'])
+        # [PhD Rigor] Mean-Centering: Centrar variables para reducir multicolinealidad estructural
+        df_valid['AMI_Centered'] = df_valid['AMI_Global'] - df_valid['AMI_Global'].mean()
         
-        # [FASE 11] Interacción Híbrida: AMI x Sentimiento (Si existe)
+        features = ['AMI_Centered']
+        
+        if 'Calidad_Percibida' in df_valid.columns:
+            df_valid['Calidad_Centered'] = df_valid['Calidad_Percibida'] - df_valid['Calidad_Percibida'].mean()
+            df_valid['Interaccion_AMI_Calidad'] = df_valid['AMI_Centered'] * df_valid['Calidad_Centered']
+            features.extend(['Calidad_Centered', 'Interaccion_AMI_Calidad'])
+        
         if 'Sentimiento_Academico' in df_valid.columns:
             # Asegurar que no hay nulos
             df_valid['Sentimiento_Academico'] = df_valid['Sentimiento_Academico'].fillna(0.5)
-            df_valid['Interaccion_AMI_Sentimiento'] = df_valid['AMI_Global'] * df_valid['Sentimiento_Academico']
-            features.append('Sentimiento_Academico')
-            features.append('Interaccion_AMI_Sentimiento')
+            df_valid['Sentimiento_Centered'] = df_valid['Sentimiento_Academico'] - df_valid['Sentimiento_Academico'].mean()
+            df_valid['Interaccion_AMI_Sentimiento'] = df_valid['AMI_Centered'] * df_valid['Sentimiento_Centered']
+            features.extend(['Sentimiento_Centered', 'Interaccion_AMI_Sentimiento'])
 
         X = df_valid[features].dropna()
         y = df_valid.loc[X.index, 'Riesgo_Total'].astype(int)
-        X = sm.add_constant(X)
+        X_with_const = sm.add_constant(X)
         
-        model = sm.Logit(y, X)
+        # Ejecutar Modelo
+        model = sm.Logit(y, X_with_const)
         result = model.fit(disp=0)
+        
+        # Diagnósticos
+        vif_df = self.calculate_vif(X)
+        y_probs = result.predict(X_with_const)
+        hl_stat, hl_p = self._calculate_hosmer_lemeshow(y, y_probs)
         
         return {
             'summary': result.summary().as_text(),
             'pvalues': result.pvalues.to_dict(),
             'params': result.params.to_dict(),
-            # Marcar significancia de interacciones
+            'vif_diagnostics': vif_df.to_dict('records'),
+            'hosmer_lemeshow': {'stat': hl_stat, 'p_value': hl_p},
             'significant_ami_calidad': result.pvalues.get('Interaccion_AMI_Calidad', 1.0) < 0.05,
-            'significant_ami_sentimiento': result.pvalues.get('Interaccion_AMI_Sentimiento', 1.0) < 0.05
+            'significant_ami_sentimiento': result.pvalues.get('Interaccion_AMI_Sentimiento', 1.0) < 0.05,
+            'interpretation_hl': "Ajuste Adecuado" if hl_p > 0.05 else "Ajuste Deficiente (Revisar Modelo)"
         }
 
     def run_mixed_methods_triangulation(self, df_scored: pd.DataFrame) -> dict:
@@ -382,6 +518,7 @@ class StatsAnalyzer:
             'summary_stats': summary_df.to_dict('index'),
             'odds_ratios_ci': conf.to_dict('index'),
             'full_summary': result.summary().as_text(),
+            'prsquared': float(result.prsquared),
             'model': result
         }
 

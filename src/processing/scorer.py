@@ -29,33 +29,63 @@ class Scorer:
     def compute_risk_target(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         Aplica la estrategia 'Fallback' computando Riesgo=1 si se cumple la compuerta OR.
-        Si hubiera data institucional fuerte, aqui se le daria prioridad.
+        Mantiene la compatibilidad con modelos predictivos binarios y añade desglose dimensional.
         """
         df_scored = df.copy()
-        df_scored['Riesgo_Total'] = 0  # Inicializar en 0 (No Riesgo)
+        df_scored['Riesgo_Total'] = 0
         
-        # --- [REGLAS ACADÉMICAS (A1-A8)] ---
-        cond_a1 = df_scored.get('A1_Interrupcion', pd.Series(index=df.index)) == 'Sí'
-        cond_a2 = df_scored.get('A2_Desaprobados', pd.Series(index=df.index)) == 'En dos o más cursos'
-        cond_a3 = df_scored.get('A3_Retirados', pd.Series("", index=df.index)).astype(str).str.contains('Sí', na=False)
-        cond_a4 = df_scored.get('A4_Rendimiento', pd.Series(index=df.index)) == 'Bajo'
+        # Mapeos numéricos para el cálculo dimensional (Objetivos 2 y 3)
+        map_a1 = {'Sí': 5, 'No': 1}
+        map_a2 = {'En dos o más cursos': 5, 'En uno': 3, 'Ninguno': 1}
+        map_a4 = {'Bajo': 5, 'Medio': 3, 'Alto': 1}
         
-        # Items Likert (A5-A8): 4 o 5 indican riesgo
+        # 1. Reglas Académicas (A1-A8)
+        if 'A1_Interrupcion' in df_scored.columns:
+            df_scored['A1_num'] = df_scored['A1_Interrupcion'].map(map_a1).fillna(1)
+        else:
+            df_scored['A1_num'] = 1
+            
+        if 'A2_Desaprobados' in df_scored.columns:
+            df_scored['A2_num'] = df_scored['A2_Desaprobados'].map(map_a2).fillna(1)
+        else:
+            df_scored['A2_num'] = 1
+            
+        if 'A3_Retirados' in df_scored.columns:
+            df_scored['A3_num'] = df_scored['A3_Retirados'].astype(str).apply(lambda x: 5 if 'Sí' in x else 1)
+        else:
+            df_scored['A3_num'] = 1
+            
+        if 'A4_Rendimiento' in df_scored.columns:
+            df_scored['A4_num'] = df_scored['A4_Rendimiento'].map(map_a4).fillna(1)
+        else:
+            df_scored['A4_num'] = 1
+        
         likert_a = ['A5_Dificultad', 'A6_Consideracion_Abandono', 'A7_Exigencia', 'A8_Retrasos']
-        cond_likert_a = pd.Series([False] * len(df), index=df.index)
         for col in likert_a:
             if col in df_scored.columns:
-                # Asegurar que sea numérico para la comparación
-                cond_likert_a |= pd.to_numeric(df_scored[col], errors='coerce') >= 4
-
-        # --- [REGLAS DOCUMENTALES/LABORALES (L1-L8)] ---
-        actual_l_cols = [col for col in df_scored.columns if col.startswith('L')]
-        cond_likert_l = pd.Series([False] * len(df), index=df.index)
-        for col in actual_l_cols:
-            if col != 'Riesgo_Total':
-                cond_likert_l |= pd.to_numeric(df_scored[col], errors='coerce') >= 4
+                df_scored[f'{col}_num'] = pd.to_numeric(df_scored[col], errors='coerce').fillna(3)
+            else:
+                df_scored[f'{col}_num'] = 3
         
-        mask_riesgo = cond_a1 | cond_a2 | cond_a3 | cond_a4 | cond_likert_a | cond_likert_l
+        # 2. Reglas LMS (L1-L8)
+        l_cols = [f'L{i}' for i in range(1, 9)]
+        for col in l_cols:
+            if col in df_scored.columns:
+                df_scored[f'{col}_num'] = pd.to_numeric(df_scored[col], errors='coerce').fillna(3)
+            else:
+                df_scored[f'{col}_num'] = 3
+        
+        # 3. Cálculo de Dimensiones de Riesgo (Desglose PhD)
+        a_num_cols = ['A1_num', 'A2_num', 'A3_num', 'A4_num'] + [f'{c}_num' for c in likert_a]
+        l_num_cols = [f'L{i}_num' for i in range(1, 9)]
+        
+        df_scored['Score_Riesgo_Academico'] = df_scored[a_num_cols].mean(axis=1)
+        df_scored['Score_Riesgo_LMS'] = df_scored[l_num_cols].mean(axis=1)
+        # Continuidad: Síntesis de historia (A1) e intención (A6)
+        df_scored['Score_Riesgo_Continuidad'] = df_scored[['A1_num', 'A6_Consideracion_Abandono_num']].mean(axis=1)
+        
+        # 4. Target Binario (OR Gate - Umbral conservador 3.5)
+        mask_riesgo = (df_scored['Score_Riesgo_Academico'] >= 3.5) | (df_scored['Score_Riesgo_LMS'] >= 3.5)
         df_scored.loc[mask_riesgo, 'Riesgo_Total'] = 1
         
         return df_scored

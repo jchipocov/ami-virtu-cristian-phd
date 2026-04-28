@@ -109,3 +109,4 @@ Producción de los artefactos finales para la defensa de tesis.
 - **Dashboards Híbridos:** Gráficos que incluyan "Word Clouds" temáticos y Radar Charts numéricos en una sola vista.
 - **Citas Textuales Automatizadas:** Selección automática de las declaraciones más representativas de cada clúster para ilustrar el reporte narrativo.
 - **Exportación de Paper-Ready Dashboard:** Generación de un PDF/Markdown final que combine el rigor de `statsmodels` con la riqueza de la narrativa cualitativa.
+- **Validación Multidimensional del Riesgo:** Desglosar la variable dependiente en sus sub-dimensiones (Académica, LMS, Continuidad) para cumplir con el Objetivo 2 y enriquecer el perfilamiento del Objetivo 3.

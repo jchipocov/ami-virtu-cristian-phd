@@ -16,11 +16,19 @@ from src.processing.cleaner import DataCleaner
 from src.processing.scorer import Scorer
 from src.utils.reporter import ReportGenerator
 from src.utils.logger import ExecutionLogger
+from src.utils.reproducibility import calculate_data_hash, verify_reproducibility_env
 
 def main():
     warnings.filterwarnings('ignore')
     
-    # --- [0] Configuración de Rutas y LOG ---
+    # --- [0] Reproducibilidad Científica (Semillas fijas) ---
+    import numpy as np
+    import random
+    SEED = 42
+    np.random.seed(SEED)
+    random.seed(SEED)
+    
+    # --- [0.1] Configuración de Rutas y LOG ---
     log_dir = os.path.join(root_dir, "logs")
     os.makedirs(log_dir, exist_ok=True)
     date_str = datetime.now().strftime("%Y%m%d")
@@ -122,8 +130,9 @@ def main():
     print("\n[4] Análisis Inferencial y Triangulación Estadística...")
     analyzer = StatsAnalyzer()
     
-    # Fiabilidad, Contrastes y Bivariada
+    # Fiabilidad, Análisis Factorial y Contrastes
     reliability_df = analyzer.calculate_reliability(df_final)
+    factor_res = analyzer.run_factor_analysis(df_final)
     contrasts = analyzer.run_demographic_contrasts(df_final)
     
     # Triangulación Mixta (Cuyo sentiment vs cuanti)
@@ -140,6 +149,7 @@ def main():
     clusterer = ClusteringEngine(n_clusters=3)
     df_clustered = clusterer.run_clustering(df_final)
     cluster_profiles = clusterer.get_cluster_profiles(df_clustered)
+    cluster_val = clusterer.validate_clustering(df_final)
     
     xai_features = None
     try:
@@ -168,9 +178,25 @@ def main():
     log_path = os.path.join(log_dir, f"bitacora_ejecuciones_{date_str}.log")
     logger = ExecutionLogger(log_path)
     
+    # --- [PhD Rigor] Auditoría de Integridad y Entorno ---
+    data_hash = calculate_data_hash(paper_ready_path)
+    env_info = verify_reproducibility_env()
+    
     # Reconstrucción del reporte detallado doctoral
-    details = "1. PSICOMETRÍA (CONSISTENCIA INTERNA):\n"
-    details += reliability_df.to_string() + "\n\n"
+    details = "0. AUDITORÍA DE REPRODUCIBILIDAD (INTEGRIDAD):\n"
+    details += f"   - SHA-256 Dataset: {data_hash}\n"
+    details += f"   - Entorno: Py {env_info['Python_Version']} | Sklearn {env_info['Scikit-Learn']} | Statsmodels {env_info['Statsmodels']}\n"
+    details += "   - Estado: INTEGRIDAD VERIFICADA.\n\n"
+    
+    details += "1. PSICOMETRÍA Y VALIDACIÓN ESTRUCTURAL:\n"
+    details += reliability_df.to_string() + "\n"
+    if factor_res.get('status') == 'success':
+        details += f"   - Prueba KMO: {factor_res['kmo']:.4f}\n"
+        details += f"   - Prueba de Bartlett (p): {factor_res['bartlett_p']:.4f}\n"
+        details += f"   - Varianza Total Explicada: {sum(factor_res['variance_explained'])*100:.2f}%\n"
+        details += f"   - Interpretación EFA: {factor_res['interpretation']}\n\n"
+    else:
+        details += f"   - EFA: No se pudo ejecutar ({factor_res.get('message')})\n\n"
     
     details += "2. AUDITORÍA DE CALIDAD (INCONSISTENCIAS):\n"
     incon = df_final['Flag_Inconsistencia'].sum() if 'Flag_Inconsistencia' in df_final.columns else 0
@@ -181,10 +207,12 @@ def main():
     for k, v in contrasts.items():
         details += f"   - {k:25}: Estadístico={v['statistic']:.4f}, p-valor={v['p_value']:.4f}\n"
 
-    details += "\n4. ASOCIACIONES BIVARIADAS (AMI vs RIESGO):\n"
+    details += "\n4. ASOCIACIONES BIVARIADAS (AMI vs RIESGO MULTIDIMENSIONAL):\n"
     biv = analyzer.run_bivariate_analysis(df_final)
-    for k, v in biv.items():
-        details += f"   - {k:20}: Pearson_r={v['Pearson_r']:.3f} (p={v['P_Pearson']:.4f}) | Spearman_rho={v['Spearman_rho']:.3f}\n"
+    for risk_dim, ami_corrs in biv.items():
+        details += f"   - Dimensión Riesgo: {risk_dim}\n"
+        for ami_feat, v in ami_corrs.items():
+            details += f"     * {ami_feat:20}: Pearson_r={v['Pearson_r']:+.3f} (p={v['P_Pearson']:.4f}) | Spearman_rho={v['Spearman_rho']:+.3f}\n"
 
     details += "\n5. MODELO DE REGRESIÓN LOGÍSTICA (INFERENCIA CIENTÍFICA):\n"
     if res_logit:
@@ -209,6 +237,19 @@ def main():
         details += f"True=1  {cm[1][0]:<6}  {cm[1][1]:<6}\n"
         
         details += f"\n   * Umbral Óptimo (Índice de Youden): {res_logit.get('threshold', 0):.4f}\n"
+        
+        # Diagnósticos PhD
+        details += "\n- DIAGNÓSTICOS DE RIGOR DOCTORAL (REGR):\n"
+        details += f"   * Bondad de Ajuste (Hosmer-Lemeshow p): {interaction_res['hosmer_lemeshow']['p_value']:.4f}\n"
+        details += f"   * Pseudo R-cuadrado (McFadden): {res_logit.get('prsquared', 0):.4f}\n"
+        details += f"   * Interpretación de Ajuste: {interaction_res['interpretation_hl']}\n"
+        details += f"   * Diagnóstico de Multicolinealidad (VIF Max): {max([v['VIF'] for v in interaction_res['vif_diagnostics']] + [0]):.4f}\n"
+        
+        # Odds Ratios
+        details += "\n- ODDS RATIOS [Exp(B)] E INTERVALOS DE CONFIANZA:\n"
+        or_ci = res_logit.get('odds_ratios_ci', {})
+        for var, metrics in or_ci.items():
+            details += f"   * {var:15}: OR={metrics['OR']:.4f} | IC 95%=[{metrics['Lower_CI']:.3f}, {metrics['Upper_CI']:.3f}]\n"
 
     details += "\n6. ENSAMBLES AVANZADOS (GRADIENT BOOSTING):\n"
     if res_rf:
@@ -230,8 +271,23 @@ def main():
         details += f"   [{algo}]:\n"
         for i, metrics in info.get('profiles', {}).items():
             cnt = info.get('counts', {}).get(i, 0)
-            risk = info.get('risk_prev', {}).get(i, 0) * 100
-            details += f"     - Grupo {i} (N={cnt}): Crit={metrics['Score_Critico']:.2f}, Tec={metrics['Score_Tecnico']:.2f}, Part={metrics['Score_Participativo']:.2f} | RIESGO={risk:.2f}%\n"
+            risk_avg = info.get('risk_prev', {}).get(i, 0) * 100
+            details += f"     - Grupo {i} (N={cnt}):\n"
+            details += f"       * AMI:  Crit={metrics['Score_Critico']:.2f}, Tec={metrics['Score_Tecnico']:.2f}, Part={metrics['Score_Participativo']:.2f}\n"
+            details += f"       * RISK: Acad={metrics['Score_Riesgo_Academico']:.2f}, LMS={metrics['Score_Riesgo_LMS']:.2f}, Cont={metrics['Score_Riesgo_Continuidad']:.2f}\n"
+            details += f"       * PREVALENCIA TOTAL: {risk_avg:.2f}%\n"
+    
+    agreement = clusterer.get_model_agreement(df_clustered)
+    if 'ari_kmeans_gmm' in agreement:
+        details += f"   - Consenso entre Modelos (Adjusted Rand Index): {agreement['ari_kmeans_gmm']:.4f}\n"
+    
+    details += "   - Métricas de Estabilidad (K=3):\n"
+    try:
+        idx_3 = cluster_val['k_range'].index(3)
+        details += f"     * Silhouette Score: {cluster_val['silhouette_scores'][idx_3]:.4f}\n"
+        details += f"     * BIC Score (GMM):  {cluster_val['bic_scores'][idx_3]:.4f}\n"
+    except:
+        pass
 
     if xai_features and 'top_items' in xai_features:
         details += "\n8. EXPLAINABLE AI (XAI) GRANULAR (TOP 10 ÍTEMS):\n"

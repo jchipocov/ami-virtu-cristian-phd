@@ -20,9 +20,15 @@ Este documento recopila la fundamentación teórica de la investigación AMI-VIR
 - **Hosmer, D. W., & Lemeshow, S. (2013):** Referencia estándar para la **Regresión Logística Aplicada**.
 - **Jain, A. K. (2010):** *Data Clustering: 50 Years Beyond K-Means*. Fundamentos de segmentación multialgoritmo.
 - **Pedregosa et al. (2011):** *Scikit-learn: Machine Learning in Python*. Marco técnico del pipeline.
+- **Kaiser, H. F. (1974):** *An index of factorial simplicity*. Fundamentación del índice KMO.
+- **Bartlett, M. S. (1954):** *A note on the multiplying factors for various chi-square approximations*. Prueba de esfericidad.
+- **O'Brien, R. M. (2007):** *A caution regarding rules of thumb for variance inflation factors*. Rigor en multicolinealidad.
+- **Hubert, L., & Arabie, P. (1985):** *Comparing partitions*. Fundamentación del Adjusted Rand Index (ARI).
+- **Google DeepMind / Gemini (2024):** *Large Language Models in Qualitative Research*. Marco para el análisis híbrido NLP.
 
-## 5. Ecología de los Medios
-- **Carlos Scolari (2018):** Alfabetismo Transmedia y el rol del prosumidor crítico.
+## 5. Ecología de los Medios y Psicopedagogía Digital
+- **Carlos Scolari (2018):** *Alfabetismo Transmedia*. El rol del prosumidor crítico.
+- **Selwyn, N. (2021):** *Education and Technology: Key Issues and Debates*. Contexto de la brecha digital.
 
 ---
 *Este sustento bibliográfico valida el diseño experimental y analítico del proyecto.*

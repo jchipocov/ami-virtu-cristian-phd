@@ -35,15 +35,14 @@ Para neutralizar el *sesgo de aquiescencia*, se aplica la función de inversión
 - **P5:** Evitar compartir borradores o ayudas.
 Esta técnica garantiza que un puntaje AMI alto represente consistentemente una mayor competencia, incluso en preguntas redactadas en sentido negativo.
 
-### 2.2. Matriz de Riesgo de Deserción (ARD-VIRTU)
-El constructo "Riesgo de Deserción" se operacionaliza como una variable dicotómica ($Y=1$ o $Y=0$).
+### 2.2. Matriz Multidimensional de Riesgo (ARD-VIRTU)
+El constructo "Riesgo de Deserción" se desglosa en tres dimensiones para el análisis de perfiles y correlaciones:
+1.  **Dimensión Académica:** ítems `A1-A8`. Incluye interrupción de matrícula, créditos desaprobados, retiros y percepción de autoeficacia académica.
+2.  **Dimensión Comportamiento LMS:** ítems `L1-L8`. Incluye frecuencia de acceso, inactividad prolongada y puntualidad en entregas.
+3.  **Dimensión Continuidad:** Variable de síntesis que integra el historial de interrupción y desvinculación progresiva.
 
-#### A. Algoritmo de Cálculo de Riesgo Total
-El sistema activa el riesgo ($Y=1$) si el estudiante cumple cualquier criterio de la siguiente compuerta lógica `OR`:
-1.  **Interrupción Académica (`A1`):** El alumno reconoce haber detenido sus estudios anteriormente.
-2.  **Reprobación Sostenida (`A2`):** Haber desaprobado dos o más cursos en el ciclo vigente.
-3.  **Retiros Administrativos (`A3`):** Haberse retirado de una o más asignaturas.
-4.  **Inactividad Crítica (`L2`):** Reportar inactividad en el entorno virtual superior a 15 días.
+#### A. Algoritmo de Identificación de Riesgo Global
+Para los modelos predictivos, se activa el riesgo ($Y=1$) si se cumple cualquier criterio de la compuerta lógica `OR` (ej. Inactividad > 15 días o Desaprobación >= 2 cursos). Sin embargo, el análisis descriptivo y de clústeres utiliza los **puntajes promediados** por dimensión para capturar la naturaleza específica de la vulnerabilidad.
 
 #### B. El Detector de Inconsistencia y Ocultamiento
 El módulo `DataCleaner` integra un **Detector de Inconsistencias** que genera una bandera estadística (`Flag_Inconsistencia = True`) sobre casos que mienten o responden al azar (ej. marcan 5 en todos los ítems AMI, ignorando los invertidos). En los modelos finales, estos registros son penalizados o excluidos mediante el **Filtro de Coherencia Agresivo (Indice < 0.6)**, asegurando que la tesis trabaje solo con "data limpia".
@@ -52,16 +51,18 @@ El módulo `DataCleaner` integra un **Detector de Inconsistencias** que genera u
 
 ## 3. Plan Analítico Doctoral Multi-Fase
 
-### Fase 1: Análisis Psicométrico de Consistencia
-Se emplean estimadores de alta precisión para validar que el instrumento mide lo que dice medir:
-- **Alfa de Cronbach ($\alpha$):** Consistencia interna clásica.
-- **Omega de McDonald ($\omega$):** Estimador jerárquico que no asume tau-equivalencia, siendo el standard actual de oro en psicometría avanzada.
+### Fase 1: Análisis Psicométrico y Validez Estructural
+Se emplean estimadores de alta precisión para validar ambos instrumentos (AMI-VIRTU y ARD-VIRTU):
+- **Alfa de Cronbach ($\alpha$) y Omega de McDonald ($\omega$):** Consistencia interna.
+- **Prueba KMO (Kaiser-Meyer-Olkin):** Valida si los datos son aptos para el análisis factorial (Standard doctoral: > 0.70).
+- **Prueba de Bartlett:** Asegura que la matriz de correlación no sea una matriz identidad ($p < 0.05$).
 
-### Fase 2: Inferencia Predictiva y Regresión Logística
-Se utiliza el método de **Máxima Verosimilitud (MLE)** en `statsmodels` para:
-- **Calcular Odds Ratios (OR):** Magnitud en la que cada punto AMI reduce el riesgo.
-- **P-valores:** Determinación de la significancia estadística ($p < .05$).
-- **Efectos de Interacción:** Validación de la hipótesis de que la AMI es un moderador entre la calidad del sistema y la retención.
+### Fase 2: Inferencia Predictiva y Diagnósticos de Rigor
+Se utiliza el método de **Máxima Verosimilitud (MLE)** en `statsmodels` con los siguientes controles:
+- **Odds Ratios (OR):** Interpretación probabilística con IC 95%.
+- **Multicolinealidad (VIF):** Verificación de independencia entre dimensiones (VIF < 5).
+- **Bondad de Ajuste (Hosmer-Lemeshow):** Validación del ajuste del modelo a los datos observados ($p > 0.05$).
+- **McFadden R-squared:** Medición del poder explicativo del modelo de regresión.
 
 ### Fase 3: Inteligencia Artificial Explicable (XAI)
 Uso de **KernelSHAP** para romper con el modelo de "caja negra":
@@ -73,16 +74,20 @@ Se implementa una integración cuali-cuanti:
 - **NLP de Sentimientos:** Procesamiento de las respuestas de la `Section B`.
 - **Cruce de Disonancia:** Identificación de alumnos con alto AMI pero bajo sentimiento, permitiendo una detección proactiva de fatiga académica (burnout).
 
-### Fase 5: Ensamble de Clustering para Perfilamiento
-Segmentación mediante 4 algoritmos concurrentes para asegurar la estabilidad: **K-Means, Ward, DBSCAN y GMM**. Esto define los 3 arquetipos: **Competente, Adaptativo y Vulnerable**.
+### Fase 5: Ensamble de Clustering y Estabilidad
+Segmentación mediante 4 algoritmos: **K-Means, Ward, DBSCAN y GMM**.
+- **Silhouette Score:** Evaluación de la calidad de la segmentación.
+- **BIC Score:** Selección óptima de componentes en GMM.
+- **Adjusted Rand Index (ARI):** Cuantificación del consenso entre los diferentes métodos de agrupamiento para garantizar la estabilidad del perfilamiento.
 
 ---
 
 ## 4. Seguridad, Privacidad y Resiliencia
 - **Filtro PII (Privacy by Design):** Eliminación de nombres y documentos de identidad.
-- **Modo Resiliente:** El generador de reportes ha sido programado para extraer evidencias textuales (citas) directamente del dataset en caso de fallos de red en la IA, garantizando que el documento de tesis siempre esté completo.
+- **Integridad SHA-256:** El pipeline verifica el hash del dataset para asegurar que no ha habido alteraciones accidentales en la data de campo entre ejecuciones.
+- **Modo Resiliente:** Extracción de evidencias textuales directa del dataset ante fallos de API.
 
 ---
 *Este documento es el sustento empírico de la tesis doctoral AMI-VIRTU.*
-*Fecha: 27 de Abril de 2026 | Dataset N=295*
+*Fecha: 28 de Abril de 2026 | Dataset N=295 (Alineación Objetivos 2 y 3)*
 导导

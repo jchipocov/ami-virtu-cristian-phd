@@ -28,18 +28,24 @@ Ante la complejidad técnica del proyecto se debe brindar acompañamiento al inv
 
 ## Módulo III: IA Explicable (XAI) y Segmentación (8 Horas)
 - **Sesión 7 (2h):** Desmitificación de SHAP. Teoría de Juegos aplicada a la importancia de ítems (Axiomas de Shapley).
-- **Sesión 8 (2h):** Interpretación de Gráficos SHAP. Identificación de los 5 ítems críticos para la intervención.
-- **Sesión 9 (2h):** Clustering Multivariado. Entender la diferencia entre K-Means, Ward y GMM.
-- **Sesión 10 (2h):** Definición de Arquetipos. Cómo pasar de "puntos de colores" a perfiles pedagógicos defendibles.
+- **Sesión 8 (2h):** Interpretación de Gráficos SHAP Granulares. Identificación de los 10 ítems críticos para la intervención.
+- **Sesión 9 (2h):** Clustering Multivariado. Entender la diferencia entre K-Means, Ward, DBSCAN y GMM.
+- **Sesión 10 (2h):** Estabilidad y Consenso. Uso del **Adjusted Rand Index (ARI)** y BIC para justificar perfiles ante el jurado.
 
 ---
 
-## Módulo IV: Triangulación y Defensa Final (8 Horas)
+## Módulo IV: Diagnósticos de Rigor Doctoral (4 Horas) - [NUEVO]
+- **Sesión 11 (2h):** Auditoría de Regresión. Cómo sustentar la ausencia de multicolinealidad (**VIF**) y la bondad de ajuste (**Hosmer-Lemeshow**).
+- **Sesión 12 (2h):** Validez Estructural. Interpretación de **KMO y Bartlett** para el Análisis Factorial de la AMI.
+
+---
+
+## Módulo V: Triangulación y Defensa Final (8 Horas)
 *Transición a Datos Reales.*
-- **Sesión 11 (2h):** Triangulación Mixta. El puente entre el NLP (Sentimiento) y el dato numérico.
-- **Sesión 12 (2h):** El Informe Final. Revisión de la Síntesis Ejecutiva Doctoral.
-- **Sesión 13 (2h):** Simulacro de Defensa I. Preguntas típicas del jurado sobre ML y XAI.
-- **Sesión 14 (2h):** Cierre: Sustitución de datos simulados por **Data Real Recolectada** y validación de resultados finales.
+- **Sesión 13 (2h):** Triangulación Mixta. El puente entre el NLP (Sentimiento) y el dato numérico.
+- **Sesión 14 (2h):** Análisis Multidimensional del Riesgo. Desglose en Académica, LMS y Continuidad.
+- **Sesión 15 (2h):** Simulacro de Defensa I. Preguntas típicas del jurado sobre ML, XAI y Rigor Estadístico.
+- **Sesión 16 (2h):** Cierre: Sustitución de datos simulados por **Data Real Recolectada**, verificación SHA-256 y validación de resultados finales.
 
 ---
 
