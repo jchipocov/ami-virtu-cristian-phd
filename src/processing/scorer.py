@@ -34,19 +34,29 @@ class Scorer:
         df_scored = df.copy()
         df_scored['Riesgo_Total'] = 0
         
-        # Mapeos numéricos para el cálculo dimensional (Objetivos 2 y 3)
-        map_a1 = {'Sí': 5, 'No': 1}
-        map_a2 = {'En dos o más cursos': 5, 'En uno': 3, 'Ninguno': 1}
-        map_a4 = {'Bajo': 5, 'Medio': 3, 'Alto': 1}
+        # CORRECCIÓN (Hallazgo 2.4): Mapa robusto compatible con datos reales Y sintéticos.
+        # Datos reales (RealDataLoader): 'Nunca', 'En un Curso', 'En dos o más'
+        # Datos sintéticos (DataSimulator): 'Ninguno', 'En uno', 'En dos o más cursos'
+        map_a2 = {
+            'En dos o más': 5, 'En dos o más cursos': 5,
+            'En un Curso': 3, 'En uno': 3,
+            'Nunca': 1, 'Ninguno': 1
+        }
+        # CORRECCIÓN (Hallazgo 2.1 / scorer): Mapa case-insensitive para datos reales.
+        map_a4 = {'Bajo': 5, 'Medio': 3, 'Alto': 1, 'bajo': 5, 'medio': 3, 'alto': 1}
         
+        # Mapeo A1 (no cambia, usa valores normalizados por ambos cargadores)
+        map_a1 = {'Sí': 5, 'No': 1}
+
         # 1. Reglas Académicas (A1-A8)
         if 'A1_Interrupcion' in df_scored.columns:
             df_scored['A1_num'] = df_scored['A1_Interrupcion'].map(map_a1).fillna(1)
         else:
             df_scored['A1_num'] = 1
             
+        # CORRECCIÓN (Hallazgo 2.4): Strip + map con diccionario robusto
         if 'A2_Desaprobados' in df_scored.columns:
-            df_scored['A2_num'] = df_scored['A2_Desaprobados'].map(map_a2).fillna(1)
+            df_scored['A2_num'] = df_scored['A2_Desaprobados'].astype(str).str.strip().map(map_a2).fillna(1)
         else:
             df_scored['A2_num'] = 1
             
@@ -55,8 +65,12 @@ class Scorer:
         else:
             df_scored['A3_num'] = 1
             
-        if 'A4_Rendimiento' in df_scored.columns:
-            df_scored['A4_num'] = df_scored['A4_Rendimiento'].map(map_a4).fillna(1)
+        # CORRECCIÓN (Hallazgo 2.1 / scorer): Soporte dual A4 / A4_Rendimiento.
+        # RealDataLoader usa 'A4'; DataSimulator puede usar 'A4_Rendimiento'.
+        # Se aplica strip() para robustez ante espacios, y map con claves case-variants.
+        col_a4 = 'A4' if 'A4' in df_scored.columns else ('A4_Rendimiento' if 'A4_Rendimiento' in df_scored.columns else None)
+        if col_a4:
+            df_scored['A4_num'] = df_scored[col_a4].astype(str).str.strip().map(map_a4).fillna(1)
         else:
             df_scored['A4_num'] = 1
         

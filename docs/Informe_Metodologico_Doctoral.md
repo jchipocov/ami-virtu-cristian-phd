@@ -31,3 +31,12 @@ Finalmente, se integran los resultados cuantitativos y cualitativos para validar
 
 ---
 *Este documento constituye el sustento metodológico oficial para el reporte de resultados del ecosistema AMI-VIRTU & ARD-VIRTU.*
+
+> [!NOTE]
+> **Estructura Confirmatoria (HC-02):** Resuelto mediante la implementación de **Tucker's Congruence Coefficient ($\Phi$)** mediante el enfoque de split-half EFA, permitiendo cuantificar la equivalencia e invariancia estructural de las dimensiones AMI entre submuestras.
+>
+> **Tamaños de Efecto (HC-03):** Resuelto mediante el cálculo automatizado de la **d de Cohen** + potencia observada en contrastes independientes de medias (t-test de Welch) y el reporte de **$\eta^2$ (eta cuadrado)** y **$\eta^2$ parcial** en comparaciones multinivel (ANOVA).
+>
+> **Adaptabilidad de Campo:** Ante la ausencia de variables demográficas complejas (e.g. género, edad) en el cuestionario real de campo, el pipeline omite los contrastes correspondientes de forma controlada y ejecuta con normalidad los contrastes basados en la variable `Universidad`.
+
+*Última actualización: 09 de Junio de 2026 (Revisión Doctoral v2.2)*

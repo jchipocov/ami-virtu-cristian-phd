@@ -33,7 +33,8 @@ class ClusteringEngine:
         """
         df_valid = df_scored[df_scored.get('Flag_Inconsistencia', False) == False].copy()
         features = ['Score_Critico', 'Score_Tecnico', 'Score_Participativo']
-        X = df_valid[features].dropna()
+        df_valid = df_valid.dropna(subset=features)
+        X = df_valid[features]
         X_scaled = self.scaler.fit_transform(X)
         
         # 1. Jerárquico (Ward) para explorar estructura
@@ -158,3 +159,54 @@ class ClusteringEngine:
             ari = adjusted_rand_score(df_clustered['Cluster_KMeans'], df_clustered['Cluster_GMM'])
             return {'ari_kmeans_gmm': float(ari)}
         return {'status': 'error', 'message': 'Faltan columnas de clúster para comparar.'}
+
+    def get_archetypal_cases(self, df_clustered: pd.DataFrame) -> dict:
+        """
+        Identifica al 'estudiante arquetípico' de cada clúster (el más cercano al centroide).
+        Extrae su declaración cualitativa para dar voz a los datos (Microscopía Cualitativa).
+        """
+        import numpy as np
+        from scipy.spatial.distance import cdist
+        
+        features = ['Score_Critico', 'Score_Tecnico', 'Score_Participativo']
+        if 'Cluster_KMeans' not in df_clustered.columns:
+            return {}
+            
+        # Re-escalar datos para medir distancias contra centroides
+        X = df_clustered[features]
+        X_scaled = self.scaler.transform(X)
+        centroids = self.kmeans.cluster_centers_
+        
+        archetypes = {}
+        for i in range(self.n_clusters):
+            # Filtramos puntos del clúster i
+            idx_cluster = df_clustered[df_clustered['Cluster_KMeans'] == i].index
+            X_cluster_scaled = X_scaled[df_clustered['Cluster_KMeans'] == i]
+            
+            if len(idx_cluster) == 0: continue
+            
+            # Calculamos distancias al centroide i
+            distances = cdist(X_cluster_scaled, [centroids[i]], metric='euclidean')
+            closest_local_idx = np.argmin(distances)
+            global_idx = idx_cluster[closest_local_idx]
+            
+            # Extraer data del arquetipo
+            row = df_clustered.loc[global_idx]
+            
+            # DEBUG: print(f"DEBUG: Row {global_idx} columns: {row.index.tolist()}")
+            
+            # Priorizar la declaración original del alumno (BC1) para "dar voz"
+            quote = row.get('BC1')
+            if pd.isna(quote) or str(quote).strip() == '':
+                quote = row.get('Analisis_Cuali', 'Sin declaración disponible.')
+                
+            archetypes[f'Grupo_{i}'] = {
+                'ID': str(global_idx),
+                'Scores': row[features].to_dict(),
+                'Sentiment': row.get('Sentimiento_Academico', 'N/A'),
+                'Coherence': row.get('Indice_Coherencia', 'N/A'),
+                'Quote': quote,
+                'Tags': row.get('Etiquetas_Tematicas', []) if isinstance(row.get('Etiquetas_Tematicas'), (list, str)) else []
+            }
+            
+        return archetypes

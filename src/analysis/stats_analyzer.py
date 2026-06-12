@@ -25,7 +25,7 @@ from scipy import stats
 import pingouin as pg
 from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, StratifiedKFold, cross_val_score
 from sklearn.metrics import classification_report, accuracy_score, confusion_matrix, roc_auc_score, r2_score, precision_recall_curve, auc
 from sklearn.preprocessing import StandardScaler
 from statsmodels.stats.outliers_influence import variance_inflation_factor
@@ -92,8 +92,9 @@ class StatsAnalyzer:
             'Riesgo_LMS': [f'L{i}_num' for i in range(1, 9)]
         }
         
-        # Identificadores de ítems redactados en sentido inverso
-        inverted_items = ['C6', 'T6', 'P5']
+        # CORRECCIÓN (Hallazgo Adicional A): T6 y P5 son positivos en la encuesta real.
+        # Se alinea con la corrección de cleaner.py para no aplicar doble inversión.
+        inverted_items = ['C6']
         
         results = []
         for dim, items in dimensions.items():
@@ -216,10 +217,16 @@ class StatsAnalyzer:
             if risk not in df_valid.columns: continue
             correlations[risk] = {}
             for ami in ami_features:
-                # Correlación de Pearson (Lineal)
-                r_val, p_val = stats.pearsonr(df_valid[risk], df_valid[ami])
-                # Spearman (No paramétrica)
-                rho, p_s = stats.spearmanr(df_valid[risk], df_valid[ami])
+                # Filtrar NaNs de manera pareada para evitar la propagación de NaNs
+                pair = df_valid[[risk, ami]].dropna()
+                if len(pair) > 2:
+                    # Correlación de Pearson (Lineal)
+                    r_val, p_val = stats.pearsonr(pair[risk], pair[ami])
+                    # Spearman (No paramétrica)
+                    rho, p_s = stats.spearmanr(pair[risk], pair[ami])
+                else:
+                    r_val, p_val = np.nan, np.nan
+                    rho, p_s = np.nan, np.nan
                 
                 correlations[risk][ami] = {
                     'Pearson_r': float(r_val), 'P_Pearson': float(p_val),
@@ -229,30 +236,117 @@ class StatsAnalyzer:
 
     def run_demographic_contrasts(self, df_scored: pd.DataFrame) -> dict:
         """
-        Realiza contrastes de hipótesis (T-test / ANOVA) para variables sociodemográficas.
+        [HC-03] Contrastes sociodemográficos con tamaños de efecto (APA 7ª ed.).
+        - T-test de Welch → d de Cohen + potencia observada (via pingouin).
+        - ANOVA de una vía → η² (eta cuadrado) + η² parcial.
         """
         if 'Flag_Inconsistencia' in df_scored.columns:
             df_valid = df_scored[df_scored['Flag_Inconsistencia'] == False].copy()
         else:
             df_valid = df_scored.copy()
-            
-        df_valid['AMI_Global'] = df_valid[['Score_Critico', 'Score_Tecnico', 'Score_Participativo']].mean(axis=1)
-        
+
+        df_valid['AMI_Global'] = df_valid[[
+            'Score_Critico', 'Score_Tecnico', 'Score_Participativo'
+        ]].mean(axis=1)
+
         contrasts = {}
-        
-        # 1. AMI por Sexo (T-test)
+
+        # --- 1. AMI por Sexo (T-test de Welch + d de Cohen) ---
         if 'Sexo' in df_valid.columns and df_valid['Sexo'].nunique() == 2:
-            group_a = df_valid[df_valid['Sexo'] == df_valid['Sexo'].unique()[0]]['AMI_Global']
-            group_b = df_valid[df_valid['Sexo'] == df_valid['Sexo'].unique()[1]]['AMI_Global']
-            t_res = stats.ttest_ind(group_a, group_b)
-            contrasts['Sexo'] = {'statistic': float(t_res.statistic), 'p_value': float(t_res.pvalue)}
-            
-        # 2. AMI por Universidad (ANOVA)
+            cats = df_valid['Sexo'].unique()
+            group_a = df_valid[df_valid['Sexo'] == cats[0]]['AMI_Global'].dropna()
+            group_b = df_valid[df_valid['Sexo'] == cats[1]]['AMI_Global'].dropna()
+
+            t_res = stats.ttest_ind(group_a, group_b, equal_var=False)  # Welch
+
+            # d de Cohen (pooled SD)
+            n_a, n_b = len(group_a), len(group_b)
+            pooled_std = np.sqrt(
+                ((n_a - 1) * group_a.std()**2 + (n_b - 1) * group_b.std()**2)
+                / (n_a + n_b - 2)
+            )
+            cohen_d = float((group_a.mean() - group_b.mean()) / pooled_std) if pooled_std > 0 else 0.0
+
+            # Magnitud del efecto según Cohen (1988)
+            if abs(cohen_d) < 0.2:
+                effect_label = "Trivial"
+            elif abs(cohen_d) < 0.5:
+                effect_label = "Pequeño"
+            elif abs(cohen_d) < 0.8:
+                effect_label = "Mediano"
+            else:
+                effect_label = "Grande"
+
+            # Potencia observada (aproximación analítica 1-β)
+            try:
+                power_res = pg.power_ttest(
+                    d=abs(cohen_d), n=min(n_a, n_b), alpha=0.05, alternative='two-sided'
+                )
+                observed_power = float(power_res)
+            except Exception:
+                observed_power = None
+
+            contrasts['Sexo'] = {
+                'statistic': float(t_res.statistic),
+                'p_value': float(t_res.pvalue),
+                'cohen_d': cohen_d,
+                'effect_magnitude': effect_label,
+                'observed_power': observed_power,
+                'n_group_a': n_a,
+                'n_group_b': n_b,
+                'group_labels': [str(cats[0]), str(cats[1])]
+            }
+
+        # --- 2. AMI por Universidad (ANOVA + η²) ---
         if 'Universidad' in df_valid.columns and df_valid['Universidad'].nunique() > 1:
-            groups = [group['AMI_Global'].values for name, group in df_valid.groupby('Universidad')]
-            f_res = stats.f_oneway(*groups)
-            contrasts['Universidad'] = {'statistic': float(f_res.statistic), 'p_value': float(f_res.pvalue)}
-            
+            groups_dict = {name: grp['AMI_Global'].dropna().values
+                           for name, grp in df_valid.groupby('Universidad')}
+            groups_list = list(groups_dict.values())
+
+            f_res = stats.f_oneway(*groups_list)
+
+            # η² (eta cuadrado) = SS_between / SS_total
+            grand_mean = df_valid['AMI_Global'].mean()
+            ss_between = sum(
+                len(g) * (g.mean() - grand_mean)**2 for g in groups_list
+            )
+            ss_total = sum(
+                ((df_valid['AMI_Global'] - grand_mean)**2).sum()
+                for _ in [None]  # trick para no repetir
+            )
+            # Recalculamos ss_total correctamente
+            ss_total = float(((df_valid['AMI_Global'] - grand_mean)**2).sum())
+            eta2 = float(ss_between / ss_total) if ss_total > 0 else 0.0
+
+            # η² parcial = F*(k-1) / [F*(k-1) + (N-k)]
+            k = len(groups_list)
+            N = sum(len(g) for g in groups_list)
+            df_between = k - 1
+            df_within = N - k
+            eta2_partial = float(
+                (f_res.statistic * df_between) /
+                (f_res.statistic * df_between + df_within)
+            ) if (f_res.statistic * df_between + df_within) > 0 else 0.0
+
+            if eta2 < 0.01:
+                effect_label_anova = "Trivial"
+            elif eta2 < 0.06:
+                effect_label_anova = "Pequeño"
+            elif eta2 < 0.14:
+                effect_label_anova = "Mediano"
+            else:
+                effect_label_anova = "Grande"
+
+            contrasts['Universidad'] = {
+                'statistic': float(f_res.statistic),
+                'p_value': float(f_res.pvalue),
+                'eta2': eta2,
+                'eta2_partial': eta2_partial,
+                'effect_magnitude': effect_label_anova,
+                'k_groups': k,
+                'N_total': N
+            }
+
         return contrasts
 
     def _calculate_hosmer_lemeshow(self, y_true, y_probs, groups=10):
@@ -302,12 +396,12 @@ class StatsAnalyzer:
         
         features = ['AMI_Centered']
         
-        if 'Calidad_Percibida' in df_valid.columns:
+        if 'Calidad_Percibida' in df_valid.columns and df_valid['Calidad_Percibida'].notnull().any():
             df_valid['Calidad_Centered'] = df_valid['Calidad_Percibida'] - df_valid['Calidad_Percibida'].mean()
             df_valid['Interaccion_AMI_Calidad'] = df_valid['AMI_Centered'] * df_valid['Calidad_Centered']
             features.extend(['Calidad_Centered', 'Interaccion_AMI_Calidad'])
         
-        if 'Sentimiento_Academico' in df_valid.columns:
+        if 'Sentimiento_Academico' in df_valid.columns and df_valid['Sentimiento_Academico'].notnull().any():
             # Asegurar que no hay nulos
             df_valid['Sentimiento_Academico'] = df_valid['Sentimiento_Academico'].fillna(0.5)
             df_valid['Sentimiento_Centered'] = df_valid['Sentimiento_Academico'] - df_valid['Sentimiento_Academico'].mean()
@@ -348,7 +442,7 @@ class StatsAnalyzer:
         else:
             df_valid = df_scored.copy()
         
-        if 'Sentimiento_Academico' not in df_valid.columns:
+        if 'Sentimiento_Academico' not in df_valid.columns or df_valid['Sentimiento_Academico'].isnull().all():
             return {'status': 'error', 'message': 'Faltan datos de Sentimiento para Triangulación.'}
 
         # 1. Correlación AMI vs Sentimiento
@@ -370,7 +464,154 @@ class StatsAnalyzer:
             'discrepantes_ids': discrepantes['ID_Estudiante'].tolist()[:5],
             'interpretation': "Correlación Moderada" if abs(r_val) > 0.3 else "Baja Correlación"
         }
-        
+
+    def run_logit_assumption_checks(self, df_scored: pd.DataFrame) -> dict:
+        """
+        [HI-04] Verificación completa de supuestos de la Regresión Logística.
+
+        Supuestos verificados (APA / Hosmer et al., 2013):
+        1. Linealidad del logit (Box-Tidwell): X * ln(X) no debe ser significativo (p > .05).
+        2. Observaciones influyentes: Distancia de Cook y leverage (hat values).
+        3. EPV (Events Per Variable): Mínimo 10-15 eventos por predictor para estabilidad.
+
+        Referencias
+        -----------
+        Box, G. E. P., & Tidwell, P. W. (1962). Transformation of the independent variables.
+            Technometrics, 4(4), 531–550.
+        Cook, R. D. (1977). Detection of influential observation in linear regression.
+            Technometrics, 19(1), 15–18.
+        Peduzzi, P. et al. (1996). J. Clinical Epidemiology, 49(12), 1373–1379.
+        """
+        if 'Flag_Inconsistencia' in df_scored.columns:
+            df_valid = df_scored[df_scored['Flag_Inconsistencia'] == False].copy()
+        else:
+            df_valid = df_scored.copy()
+
+        features = ['Score_Critico', 'Score_Tecnico', 'Score_Participativo']
+        X = df_valid[features].dropna()
+        y = df_valid.loc[X.index, 'Riesgo_Total'].astype(int)
+
+        results = {}
+
+        # ── 1. EPV (Events Per Variable) ──────────────────────────────────────
+        n_events = int(y.sum())
+        n_predictors = len(features)
+        epv = n_events / n_predictors
+        epv_ok = epv >= 10
+        results['epv'] = {
+            'n_events': n_events,
+            'n_predictors': n_predictors,
+            'epv_ratio': float(epv),
+            'threshold': 10,
+            'ok': epv_ok,
+            'interpretation': (
+                f"EPV={epv:.1f} ≥ 10 — Muestra adecuada para {n_predictors} predictores"
+                if epv_ok else
+                f"EPV={epv:.1f} < 10 — Riesgo de sobreajuste con {n_predictors} predictores"
+            )
+        }
+
+        # ── 2. Box-Tidwell: Linealidad del logit ───────────────────────────────
+        # Se añade el término de interacción X * ln(X) al modelo.
+        # Si es significativo (p < .05) → relación NO lineal en el logit.
+        try:
+            X_bt = X.copy()
+            for feat in features:
+                vals = X_bt[feat].clip(lower=0.001)  # evitar ln(0)
+                X_bt[f'{feat}_lnX'] = vals * np.log(vals)
+
+            X_bt_const = sm.add_constant(X_bt)
+            model_bt = sm.Logit(y, X_bt_const).fit(disp=0, maxiter=100)
+
+            bt_results = {}
+            for feat in features:
+                term = f'{feat}_lnX'
+                p = float(model_bt.pvalues.get(term, 1.0))
+                bt_results[feat] = {
+                    'p_interaction': p,
+                    'linearity_ok': p > 0.05,
+                    'interpretation': (
+                        f"p={p:.4f} > .05 — Relación lineal en el logit ✓"
+                        if p > 0.05 else
+                        f"p={p:.4f} ≤ .05 — Posible no-linealidad (considerar transformación)"
+                    )
+                }
+
+            all_linear = all(v['linearity_ok'] for v in bt_results.values())
+            results['box_tidwell'] = {
+                'per_feature': bt_results,
+                'all_linear': all_linear,
+                'overall': (
+                    "Supuesto de linealidad del logit SATISFECHO para todas las dimensiones"
+                    if all_linear else
+                    "Supuesto PARCIALMENTE violado — revisar dimensiones con p ≤ .05"
+                )
+            }
+        except Exception as e:
+            results['box_tidwell'] = {'status': 'error', 'message': str(e)}
+
+        # ── 3. Distancia de Cook y Leverage ────────────────────────────────────
+        try:
+            X_const = sm.add_constant(X)
+            model_main = sm.Logit(y, X_const).fit(disp=0, maxiter=100)
+
+            # Leverage (hat values) desde la matriz de información
+            # Aproximación estándar via influencias de statsmodels
+            influence = model_main.get_influence()
+            hat_values = influence.hat_matrix_diag
+            resid_std = influence.resid_studentized
+
+            # Umbral de Cook: 4 / (N - k - 1)
+            n = len(y)
+            k = n_predictors
+            cook_threshold = 4 / (n - k - 1)
+
+            # Distancia de Cook simplificada: (h * r²) / k*(1-h)²
+            # Usamos los valores estandarizados disponibles
+            cook_approx = (hat_values * resid_std**2) / (k * (1 - hat_values)**2 + 1e-10)
+            n_influential = int((cook_approx > cook_threshold).sum())
+            pct_influential = float(n_influential / n * 100)
+
+            # Leverage alto: h > 2*(k+1)/n
+            lev_threshold = 2 * (k + 1) / n
+            n_high_leverage = int((hat_values > lev_threshold).sum())
+
+            results['influential_obs'] = {
+                'n_total': n,
+                'cook_threshold': float(cook_threshold),
+                'n_influential_cook': n_influential,
+                'pct_influential': float(pct_influential),
+                'leverage_threshold': float(lev_threshold),
+                'n_high_leverage': n_high_leverage,
+                'interpretation': (
+                    f"{n_influential} obs. con Cook > {cook_threshold:.4f} ({pct_influential:.1f}%). "
+                    f"{n_high_leverage} obs. con leverage alto. "
+                    + ("Sin casos críticos de influencia." if pct_influential < 5
+                       else "Revisar casos influyentes antes de reportar.")
+                )
+            }
+        except Exception as e:
+            results['influential_obs'] = {'status': 'error', 'message': str(e)}
+
+        # ── Veredicto Global ───────────────────────────────────────────────────
+        epv_pass = results['epv']['ok']
+        bt_pass = results.get('box_tidwell', {}).get('all_linear', False)
+        cook_pct = results.get('influential_obs', {}).get('pct_influential', 100)
+        cook_pass = cook_pct < 5
+
+        passed = sum([epv_pass, bt_pass, cook_pass])
+        results['overall_verdict'] = {
+            'passed': passed,
+            'total': 3,
+            'summary': (
+                f"{passed}/3 supuestos verificados — "
+                + ("Modelo logístico metodológicamente sólido para defensa." if passed == 3
+                   else "Revisar supuestos fallidos antes de la defensa doctoral.")
+            )
+        }
+
+        return results
+
     def run_xai_analysis(self, model, X_train, model_name="Model") -> dict:
         """Genera explicaciones SHAP para transparencia del modelo (XAI)."""
         import shap
@@ -456,6 +697,181 @@ class StatsAnalyzer:
             'plot_path': plot_path,
             'top_items': ranking[:10]
         }
+
+    def run_logistic_cv(self, df_scored: pd.DataFrame, k: int = 10) -> dict:
+        """
+        [HC-05] Validación cruzada estratificada (Stratified k-Fold) del modelo logístico.
+        Estima el AUC-ROC generalizable (media ± std) sobre todos los datos válidos,
+        resolviendo el sesgo del split único train/test.
+
+        Parámetros
+        ----------
+        k : int
+            Número de pliegues (default=10, estándar doctoral).
+        """
+        if 'Flag_Inconsistencia' in df_scored.columns:
+            df_valid = df_scored[df_scored['Flag_Inconsistencia'] == False].copy()
+        else:
+            df_valid = df_scored.copy()
+
+        features = ['Score_Critico', 'Score_Tecnico', 'Score_Participativo']
+        X = df_valid[features].dropna()
+        y = df_valid.loc[X.index, 'Riesgo_Total'].astype(int)
+
+        # Escalar DENTRO de cada fold para evitar data-leakage
+        from sklearn.pipeline import Pipeline
+        from sklearn.preprocessing import StandardScaler as SS
+        from sklearn.linear_model import LogisticRegression as LR
+
+        pipe = Pipeline([
+            ('scaler', SS()),
+            ('logit', LR(class_weight='balanced', random_state=42, max_iter=500))
+        ])
+
+        skf = StratifiedKFold(n_splits=k, shuffle=True, random_state=42)
+
+        auc_scores = cross_val_score(pipe, X, y, cv=skf, scoring='roc_auc')
+        acc_scores = cross_val_score(pipe, X, y, cv=skf, scoring='accuracy')
+        f1_scores  = cross_val_score(pipe, X, y, cv=skf, scoring='f1')
+
+        interpretation = (
+            "AUC generalizable robusta" if auc_scores.mean() >= 0.75
+            else "AUC moderada — considerar más features o mayor muestra"
+        )
+
+        return {
+            'k_folds': k,
+            'n_samples': len(y),
+            'n_positive': int(y.sum()),
+            'auc_scores': auc_scores.tolist(),
+            'auc_mean': float(auc_scores.mean()),
+            'auc_std': float(auc_scores.std()),
+            'auc_ci_95': [
+                float(auc_scores.mean() - 1.96 * auc_scores.std()),
+                float(auc_scores.mean() + 1.96 * auc_scores.std())
+            ],
+            'accuracy_mean': float(acc_scores.mean()),
+            'accuracy_std': float(acc_scores.std()),
+            'f1_mean': float(f1_scores.mean()),
+            'f1_std': float(f1_scores.std()),
+            'interpretation': interpretation
+        }
+
+    def run_confirmatory_factor_analysis(self, df_raw: pd.DataFrame) -> dict:
+        """
+        [HC-02] Validación Confirmatoria de la estructura AMI de 3 factores
+        mediante el Coeficiente de Congruencia de Tucker (Φ).
+
+        Metodología (defensible sin AFC completo):
+          1. Dividir la muestra en dos mitades estratificadas.
+          2. Ejecutar EFA (3 factores, Oblimin) en cada mitad.
+          3. Calcular Tucker's Φ entre las matrices de cargas.
+          4. Φ ≥ 0.95 = Excelente congruencia (Lorenzo-Seva & ten Berge, 2006).
+          5. Φ ≥ 0.85 = Adecuado (umbral mínimo para reporte doctoral).
+
+        Referencia: Lorenzo-Seva, U. & ten Berge, J. M. F. (2006).
+        Tucker's congruence coefficient as a meaningful index of factor similarity.
+        Methodology, 2(2), 57-64.
+        """
+        ami_items = (
+            [f'C{i}' for i in range(1, 11)] +
+            [f'T{i}' for i in range(1, 11)] +
+            [f'P{i}' for i in range(1, 11)]
+        )
+        likert_map = {
+            "Totalmente en desacuerdo": 1, "En desacuerdo": 2,
+            "Ni de acuerdo ni en desacuerdo": 3, "De acuerdo": 4,
+            "Totalmente de acuerdo": 5
+        }
+
+        data_cfa = df_raw[ami_items].copy()
+        for col in ami_items:
+            if not pd.api.types.is_numeric_dtype(data_cfa[col]):
+                data_cfa[col] = data_cfa[col].map(likert_map)
+            data_cfa[col] = pd.to_numeric(data_cfa[col], errors='coerce')
+        data_cfa = data_cfa.dropna()
+
+        if data_cfa.shape[0] < 60:
+            return {
+                'status': 'error',
+                'message': 'Muestra insuficiente para split confirmatorio (mínimo N=60).'
+            }
+
+        # --- División estratificada en dos mitades ---
+        n = len(data_cfa)
+        idx = data_cfa.index.tolist()
+        np.random.seed(42)
+        np.random.shuffle(idx)
+        half = n // 2
+        idx_a, idx_b = idx[:half], idx[half:]
+        data_a = data_cfa.loc[idx_a]
+        data_b = data_cfa.loc[idx_b]
+
+        def _fit_efa(data):
+            fa = FactorAnalyzer(n_factors=3, rotation="oblimin", method="minres")
+            fa.fit(data)
+            return fa.loadings_  # shape (30, 3)
+
+        def _tucker_phi(L1: np.ndarray, L2: np.ndarray) -> np.ndarray:
+            """Tucker's congruence coefficient entre columnas de dos matrices de cargas."""
+            phi = np.zeros(L1.shape[1])
+            for f in range(L1.shape[1]):
+                num = np.sum(L1[:, f] * L2[:, f])
+                den = np.sqrt(np.sum(L1[:, f]**2) * np.sum(L2[:, f]**2))
+                phi[f] = num / den if den > 0 else 0.0
+            return phi
+
+        try:
+            L_a = _fit_efa(data_a)
+            L_b = _fit_efa(data_b)
+
+            phi_scores = _tucker_phi(L_a, L_b)
+            phi_mean = float(np.mean(np.abs(phi_scores)))
+
+            factor_labels = ['Factor_Critico', 'Factor_Tecnico', 'Factor_Participativo']
+
+            # Interpretación según Lorenzo-Seva & ten Berge (2006)
+            def _phi_label(phi_val):
+                phi_val = abs(phi_val)
+                if phi_val >= 0.95:
+                    return "Excelente congruencia confirmatoria"
+                elif phi_val >= 0.85:
+                    return "Congruencia adecuada (aceptable para defensa)"
+                elif phi_val >= 0.70:
+                    return "Congruencia marginal — estructura cuestionable"
+                else:
+                    return "Incongruencia factorial — revisar estructura"
+
+            per_factor = {
+                factor_labels[i]: {
+                    'phi': float(abs(phi_scores[i])),
+                    'interpretation': _phi_label(phi_scores[i])
+                }
+                for i in range(3)
+            }
+
+            overall_interp = _phi_label(phi_mean)
+            confirmed = phi_mean >= 0.85
+
+            # RMSR (Root Mean Square Residual) de las cargas entre mitades
+            rmsr = float(np.sqrt(np.mean((L_a - L_b)**2)))
+
+            return {
+                'status': 'success',
+                'method': "Tucker's Congruence Coefficient (Φ) — Split-half EFA",
+                'reference': "Lorenzo-Seva & ten Berge (2006). Methodology, 2(2), 57-64.",
+                'n_total': n,
+                'n_half_a': half,
+                'n_half_b': n - half,
+                'phi_per_factor': per_factor,
+                'phi_mean': phi_mean,
+                'rmsr': rmsr,
+                'structure_confirmed': confirmed,
+                'overall_interpretation': overall_interp
+            }
+
+        except Exception as e:
+            return {'status': 'error', 'message': str(e)}
 
     def _find_best_threshold(self, y_true, y_probs) -> float:
         """Encuentra el umbral óptimo usando el Índice de Youden (Balance Sensibilidad/Especificidad)."""

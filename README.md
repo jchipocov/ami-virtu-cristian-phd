@@ -6,7 +6,7 @@ Este documento sirve como **Guía Maestra para el Destinatario**. Si has recibid
 
 ---
 
-## � 1. Estructura del Proyecto (Mapa de Archivos)
+## 🗂️ 1. Estructura del Proyecto (Mapa de Archivos)
 
 Para que sepas dónde estás parado, aquí tienes la anatomía del sistema:
 
@@ -129,4 +129,3 @@ Al terminar, debes dirigirte a `data/outputs/reports/`. Allí encontrarás los 7
 
 ---
 *Este proyecto es parte de la Tesis Doctoral AMI-VIRTU 2026. Ha sido diseñado para ser auditable, escalable y metodológicamente inexpugnable.*
-导导

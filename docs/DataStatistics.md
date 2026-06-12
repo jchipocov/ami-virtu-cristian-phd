@@ -1,18 +1,23 @@
 # Planificación Estadística y Pipeline de Datos (Versión Doctoral Extendida)
 
-Este documento detalla de forma exhaustiva la estrategia estadística del software AMI-VIRTU. Ha sido actualizado para reflejar la transición de la fase de simulación a la fase de **Análisis de Campo Consolidada (N=295)**, integrando todos los hallazgos de las Fases 1 a 13 del proyecto.
+Este documento detalla de forma exhaustiva la estrategia estadística del software AMI-VIRTU. Ha sido actualizado para reflejar la transición de la fase de simulación a la fase de **Análisis de Campo Consolidada (N=302 en data real, N=263 en data sintética)**, integrando todos los hallazgos del pipeline desacoplado del proyecto.
 
 ---
 
 ## 1. Estrategia de Muestreo y Validación de la Cohorte
 
 ### 1.1. Tamaño Muestral (`N`) y Representatividad
-- **Meta inicial:** 240 a 300 encuestas.
-- **N Final Consolidado:** **295 estudiantes**. Esta cifra garantiza un poder estadístico robusto para el modelamiento inferencial, superando los umbrales mínimos requeridos para la estabilidad de la Regresión Logística y el Clustering Multivariado.
-- **Proporción de Clases:** Se ha logrado identificar una proporción de riesgo que permite el entrenamiento equilibrado de modelos predictivos, evitando el sobreajuste (overfitting) y garantizando la generalización de los resultados a otras universidades públicas.
+El pipeline opera en dos configuraciones de datos totalmente desacopladas según las directrices metodológicas doctorales:
+- **Flujo de Datos Reales (`DATA_SOURCE=real`):** La muestra inicial recolectada en campo a través del instrumento de encuesta consta de **346 registros**. Se aplican dos filtros de exclusión metodológica y ética:
+  1. *Filtro de Consentimiento:* Exclusión de 7 participantes que no aceptaron el consentimiento informado.
+  2. *Filtro de Actividad Virtual:* Exclusión de 36 participantes que no tomaban clases virtuales universitarias.
+  Esto resulta en una muestra válida de **N=303 estudiantes**. Tras aplicar el Filtro de Coherencia Semántica (Índice de Coherencia ≥ 0.6), se excluye 1 participante adicional, consolidando un tamaño muestral de **N=302 estudiantes** para el análisis inferencial y predictivo.
+- **Flujo de Datos Sintéticos (`DATA_SOURCE=synthetic`):** Utiliza la cohorte simulada original de **N=295 estudiantes** (N=263 válidos tras el Filtro de Coherencia Semántica).
 
-### 1.2. Transición de Datos Simulados a Reales
-El simulador original utilizó **Cópulas Gaussianas Multivariadas** para inyectar un Modelo de Factor Latente, preservando las correlaciones entre AMI y Riesgo. Tras la recolección de los **295 casos reales**, el pipeline ha validado que las tendencias teóricas se mantienen: la Alfabetización Mediática (especialmente la técnica) actúa como el principal factor de protección contra la deserción virtual.
+### 1.2. Transición de Datos Simulados a Reales y Demarcación Metodológica
+Existe una diferencia estadística y teórica sustancial entre ambas fases, la cual debe ser declarada explícitamente en la defensa:
+1. **Fase de Simulación:** Diseñada bajo un modelo de factores latentes con cópulas gaussianas limpias. Los modelos predictivos en esta fase muestran un ajuste excelente (McFadden $R^2 = 0.2442$ y AUC-ROC = $0.88$), sirviendo como validación algorítmica de la arquitectura.
+2. **Fase Real (Análisis de Campo):** Los datos de campo reales recolectados de las universidades (UNMSM, UNI, UNTELS) reflejan la complejidad y el "ruido" propios de las ciencias sociales aplicadas. El modelo logístico en esta fase reporta un McFadden $R^2 = 0.0110$ y un AUC-ROC = $0.6092$ (Cross-Validation AUC-ROC = $0.5361 \pm 0.0676$), evidenciando que las relaciones en el mundo real son sustancialmente más atenuadas y multifactoriales. El pipeline maneja de forma segura e independiente ambos entornos.
 
 ---
 
@@ -46,6 +51,11 @@ Para los modelos predictivos, se activa el riesgo ($Y=1$) si se cumple cualquier
 
 #### B. El Detector de Inconsistencia y Ocultamiento
 El módulo `DataCleaner` integra un **Detector de Inconsistencias** que genera una bandera estadística (`Flag_Inconsistencia = True`) sobre casos que mienten o responden al azar (ej. marcan 5 en todos los ítems AMI, ignorando los invertidos). En los modelos finales, estos registros son penalizados o excluidos mediante el **Filtro de Coherencia Agresivo (Indice < 0.6)**, asegurando que la tesis trabaje solo con "data limpia".
+
+### 2.3. Variables Sociodemográficas y Datos Faltantes
+- **En la Fase Real (Data de Campo):** La encuesta final distribuida a los estudiantes no capturó variables sociodemográficas tradicionales como `Sexo`, `Edad` ni `Semestre`, ni tampoco la percepción subjetiva de la plataforma (`Calidad_Percibida`). Para mantener la coherencia en las firmas de funciones del pipeline analítico, estas columnas se declaran e inicializan con valores vacíos (`NaN`).
+- **Adaptabilidad Dinámica del Pipeline:** El software ha sido modificado para omitir robustamente los análisis de contraste cuando detecta la ausencia de variabilidad. Por ende, los contrastes bivariados por género (T-test) se saltan dinámicamente, mientras que el ANOVA por `Universidad` (donde sí se cuenta con datos clasificados para UNMSM, UNI y UNTELS) se ejecuta y reporta con total normalidad.
+- **En la Fase Sintética:** Las variables demográficas completas y `Calidad_Percibida` son totalmente simuladas e integradas.
 
 ---
 
@@ -89,5 +99,10 @@ Segmentación mediante 4 algoritmos: **K-Means, Ward, DBSCAN y GMM**.
 
 ---
 *Este documento es el sustento empírico de la tesis doctoral AMI-VIRTU.*
-*Fecha: 28 de Abril de 2026 | Dataset N=295 (Alineación Objetivos 2 y 3)*
-导导
+
+> [!IMPORTANT]
+> **Declaración oficial del tamaño muestral:** 
+> - **Flujo de Datos Reales:** Se analizaron **346 registros** crudos en la encuesta. Tras aplicar exclusiones metodológicas/éticas (consentimiento y no-virtualidad), la cohorte válida de campo es **N=303 casos**. Tras el Filtro de Coherencia Agresivo (Índice_Coherencia ≥ 0.6), la muestra final para inferencia y modelamiento es **N=302 casos**.
+> - **Flujo de Datos Sintéticos:** Se simularon **300 casos**. Tras el filtrado de coherencia semántica, se consolidan **N=295 casos** para psicometría y **N=263 casos** para modelado inferencial predictivo.
+
+*Fecha de actualización: 09 de Junio de 2026 | Revisión Doctoral v2.2*

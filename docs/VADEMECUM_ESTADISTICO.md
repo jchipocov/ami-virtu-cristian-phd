@@ -51,12 +51,17 @@ El motor de reportes está diseñado para operar en modo persistente:
 - **Fase de IA:** Generación agéntica de conclusiones basadas en hallazgos estadísticos.
 - **Fase de Evidencias:** Extracción automática de citas textuales de los alumnos para sustentar los reportes de clúster, garantizando la validez cualitativa incluso ante restricciones de cuota API.
 
-## 9. Integridad y Reproducibilidad
+## 9. Microscopía Cualitativa (Citas Arquetípicas)
+Selección automatizada del "estudiante arquetípico" (punto más cercano al centroide del clúster). El sistema extrae su declaración textual original (`BC1`) para dar "voz" a los datos numéricos, permitiendo una interpretación fenomenológica de los clústeres.
+
+## 10. Visualización Temática: Nubes de Palabras (Word Clouds)
+Generación de mapas visuales de frecuencia por clúster basados en las `Etiquetas_Tematicas` (IA) o extracción de palabras clave (Fallback). Esta herramienta permite identificar el léxico predominante y las preocupaciones específicas de cada grupo de riesgo (ej. "frustración", "acceso", "búsqueda").
+
+## 11. Integridad y Reproducibilidad
 - **Semillas Fijas:** Uso de `random_state` para replicabilidad de resultados.
 - **Hashing SHA-256:** Verificación de integridad del dataset antes de cada ejecución.
 - **Auditoría de Entorno:** Registro de versiones de librerías (Sklearn, Statsmodels).
 
 ---
 *Este proyecto cumple estrictamente con el rigor metodológico para defensa de tesis doctoral.*
-*Última Actualización: 28 de Abril de 2026 (Ajuste por Desglose Dimensional de Riesgo y Diagnósticos de Rigor)*
-导导
+*Última Actualización: 28 de Abril de 2026 (Finalización de Fase de Microscopía y Word Clouds)*

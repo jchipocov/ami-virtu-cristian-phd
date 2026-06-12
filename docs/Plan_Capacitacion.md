@@ -54,4 +54,3 @@ El doctorando aprenderá a usar "el coche de carreras" en el simulador mientras 
 
 ---
 *Este plan de **32 horas** garantiza un dominio total y una entrega inmediata de resultados reales.*
-导导

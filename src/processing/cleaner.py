@@ -16,7 +16,11 @@ class DataCleaner:
             "De acuerdo": 4,
             "Totalmente de acuerdo": 5
         }
-        self.inverted_items = ['C6', 'T6', 'P5']
+        # CORRECCIÓN (Hallazgo 3.1): T6 y P5 son ítems POSITIVOS en la encuesta real.
+        # T6 = "Manejo plataformas virtuales con facilidad" (autoeficacia positiva)
+        # P5 = "Contribuyo a la solución de problemas en equipo" (colaboración positiva)
+        # Solo C6 es genuinamente negativo (trampa de aquiescencia).
+        self.inverted_items = ['C6']
         
     def transform_likert_to_numeric(self, df: pd.DataFrame) -> pd.DataFrame:
         """Convierte las cadenas de texto del Likert a números del 1 al 5."""
@@ -24,7 +28,15 @@ class DataCleaner:
         
         # Identificar columnas que deberian estar en Likert
         ami_cols = [f'C{i}' for i in range(1, 11)] + [f'T{i}' for i in range(1, 11)] + [f'P{i}' for i in range(1, 11)]
-        ard_likert_cols = [f'A{i}' for i in range(4, 9)] + [f'L{i}' for i in [1, 3, 4, 5, 6, 7, 8]]
+        # CORRECCIÓN (Hallazgo 2.1): A4 se excluye porque contiene texto cualitativo
+        # ('Alto', 'Medio', 'Bajo') que NO es una escala Likert de acuerdo.
+        # El transform_likert_to_numeric lo convertiría a 100% NaN si se incluye.
+        # CORRECCIÓN (Hallazgo 2.2 + Adicional 1): Se usan nombres largos para A5-A8
+        # para alinear con real_data_loader.py post-corrección.
+        # CORRECCIÓN (Hallazgo 2.3): Se incluye L2 (inactividad en aula virtual).
+        ard_likert_cols = [
+            'A5_Dificultad', 'A6_Consideracion_Abandono', 'A7_Exigencia', 'A8_Retrasos'
+        ] + [f'L{i}' for i in range(1, 9)]
         
         target_cols = ami_cols + ard_likert_cols + ['Calidad_Percibida']
         
@@ -63,10 +75,15 @@ class DataCleaner:
             df_clean.loc[variances == 0, 'Flag_Inconsistencia'] = True
             
         # 2. Detector Semántico (Ocultamiento de Riesgo)
-        # Por ejemplo, si dice tener rendimiento Alto pero tiene 2 o más cursos desaprobados
+        # Condición: Rendimiento 'Alto' pero con 2 o más cursos desaprobados.
+        # CORRECCIÓN (Hallazgo 3.2): A4 conserva texto cualitativo ('Alto','Medio','Bajo')
+        # porque se excluyó de ard_likert_cols. A2_Desaprobados normalizado por
+        # RealDataLoader contiene 'En dos o más' (sin la palabra 'cursos').
         if 'A4' in df_clean.columns and 'A2_Desaprobados' in df_clean.columns:
-            # Acondicionando un mapeo heurístico:
-            mask_mentira = (df_clean['A4'] == 5) & (df_clean['A2_Desaprobados'] == 'En dos o más cursos')
+            mask_mentira = (
+                (df_clean['A4'].astype(str).str.strip().str.lower() == 'alto') &
+                (df_clean['A2_Desaprobados'].astype(str).str.strip() == 'En dos o más')
+            )
             df_clean.loc[mask_mentira, 'Flag_Inconsistencia'] = True
 
         return df_clean

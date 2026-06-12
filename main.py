@@ -17,6 +17,10 @@ from src.processing.scorer import Scorer
 from src.utils.reporter import ReportGenerator
 from src.utils.logger import ExecutionLogger
 from src.utils.reproducibility import calculate_data_hash, verify_reproducibility_env
+from src.processing.real_data_loader import RealDataLoader
+from src.simulation.data_simulator import DataSimulator
+from src.simulation.qualitative_generator import QualitativeGenerator
+from dotenv import load_dotenv
 
 def main():
     warnings.filterwarnings('ignore')
@@ -37,15 +41,66 @@ def main():
     print("  AMI-VIRTU & ARD-VIRTU - ANALYTICAL ENGINE (HÍBRIDO)")
     print("==================================================")
     
-    # --- [1] Carga de Datos Híbridos (Desacoplado) ---
-    hybrid_input = os.path.join(root_dir, "data", "processed", "hybrid_analysis_results.csv")
+    load_dotenv()
+    data_source = os.getenv("DATA_SOURCE", "real").strip().lower()
+    generate_synthetic = os.getenv("GENERATE_SYNTHETIC", "false").strip().lower() == "true"
     
-    if not os.path.exists(hybrid_input):
-        print(f"\n[!] ERROR: No se encontró el dataset en: {hybrid_input}")
+    # --- [1] Carga y Preparación de Datos Desacoplada ---
+    if data_source == "real":
+        # Flujo de Datos Reales
+        hybrid_input = os.path.join(root_dir, "data", "processed", "real_hybrid_analysis_results.csv")
+        paper_ready_path = os.path.join(root_dir, "data", "processed", "real_ami_virtu_final_paper_ready.csv")
+        out_dir = os.path.join(root_dir, 'data', 'outputs', 'real')
+        log_path = os.path.join(log_dir, f"real_bitacora_ejecuciones_{date_str}.log")
+        
+        if not os.path.exists(hybrid_input):
+            excel_raw = os.path.join(root_dir, "data", "raw", "Formulario de Investigación Académica Doctoral - BIU (2).xlsx")
+            if os.path.exists(excel_raw):
+                print(f"\n[1] Generando dataset real desde el Excel: {excel_raw}")
+                loader = RealDataLoader(excel_raw)
+                df_raw = loader.load_and_process()
+                os.makedirs(os.path.dirname(hybrid_input), exist_ok=True)
+                df_raw.to_csv(hybrid_input, index=False, encoding='utf-8-sig')
+            else:
+                print(f"\n[!] ERROR: No se encontró el archivo de datos reales en: {excel_raw}")
+                return
+        else:
+            df_raw = pd.read_csv(hybrid_input)
+            print(f"\n[1] Dataset real cargado satisfactoriamente (N={len(df_raw)}).")
+            
+    elif data_source == "synthetic":
+        # Flujo de Datos Sintéticos
+        hybrid_input = os.path.join(root_dir, "data", "processed", "synthetic_hybrid_analysis_results.csv")
+        paper_ready_path = os.path.join(root_dir, "data", "processed", "synthetic_ami_virtu_final_paper_ready.csv")
+        out_dir = os.path.join(root_dir, 'data', 'outputs', 'synthetic')
+        log_path = os.path.join(log_dir, f"synthetic_bitacora_ejecuciones_{date_str}.log")
+        
+        if not os.path.exists(hybrid_input):
+            if generate_synthetic:
+                print("\n[1] GENERATE_SYNTHETIC=true: Iniciando simulación de datos sintéticos (Cópulas + Gemini)...")
+                # Generar data sintética base
+                sim = DataSimulator(num_records=300, risk_ratio=0.33)
+                df_sim_raw = sim.generate_dataset()
+                # Limpiar y puntuar base
+                cleaner = DataCleaner()
+                scorer = Scorer()
+                df_sim_clean = cleaner.clean_process(df_sim_raw)
+                df_sim_scored = scorer.score_process(df_sim_clean)
+                # Generar respuestas cualitativas usando Gemini
+                gen = QualitativeGenerator()
+                df_raw = gen.generate_qualitative_data(df_sim_scored)
+                os.makedirs(os.path.dirname(hybrid_input), exist_ok=True)
+                df_raw.to_csv(hybrid_input, index=False, encoding='utf-8-sig')
+            else:
+                print(f"\n[!] ERROR: El archivo de datos sintéticos no existe en: {hybrid_input}")
+                print("    Para generarlo automáticamente, por favor configure GENERATE_SYNTHETIC=true en su archivo .env")
+                return
+        else:
+            df_raw = pd.read_csv(hybrid_input)
+            print(f"\n[1] Dataset sintético cargado satisfactoriamente (N={len(df_raw)}).")
+    else:
+        print(f"\n[!] ERROR: Origen de datos DATA_SOURCE='{data_source}' no soportado (debe ser 'real' o 'synthetic').")
         return
-
-    df_raw = pd.read_csv(hybrid_input)
-    print(f"\n[1] Dataset cargado satisfactoriamente (N={len(df_raw)}).")
 
     # Asegurar que los datos estén limpios y puntuados (Score_Critico, etc.)
     if 'Score_AMI_Global' not in df_raw.columns:
@@ -57,7 +112,14 @@ def main():
 
     # --- [2] Análisis Cualitativo (Sincronización) ---
     qual_engine = QualitativeEngine()
-    if "Indice_Coherencia" not in df_raw.columns:
+    # CORRECCIÓN (Hallazgo 5.1): Si la columna existe pero está completamente vacía
+    # (todo NaN por un fallo previo de API), se reintenta el análisis cualitativo.
+    # Esto supera el "lock-in" que bloqueaba re-ejecuciones tras un fallo de clave API.
+    _cuali_missing = (
+        "Indice_Coherencia" not in df_raw.columns or
+        df_raw["Indice_Coherencia"].isnull().all()
+    )
+    if _cuali_missing:
         print("\n[2] Iniciando Triangulación Cualitativa (Modo Resiliente)...")
         processed_rows = []
         api_blocked = False
@@ -70,9 +132,9 @@ def main():
                 
             analyzed_row = qual_engine.analyze_single_student(row)
             
-            # Detectar bloqueo de cuota (marcado en el análisis por el engine)
-            if "Error: 429" in str(analyzed_row.get('Analisis_Cuali', '')):
-                print(f"   [!] DETECTADO BLOQUEO DE CUOTA (429). Saltando el resto del análisis cualitativo...")
+            # Detectar error o bloqueo de cuota (marcado en el análisis por el engine)
+            if "Error:" in str(analyzed_row.get('Analisis_Cuali', '')):
+                print(f"   [!] DETECTADO ERROR EN LA API ({analyzed_row.get('Analisis_Cuali')}). Saltando el resto del análisis cualitativo por resiliencia...")
                 api_blocked = True
                 
             processed_rows.append(analyzed_row)
@@ -89,14 +151,26 @@ def main():
         df_hybrid['A3_num'] = df_hybrid['A3_Retirados'].map(map_retirados).fillna(0)
         df_hybrid['A4_num'] = df_hybrid['A4'].map(map_rendimiento).fillna(1)
 
-        # Cálculo de promedios para dimensiones Likert (A5-A8, L1-L8)
-        # Asegurar que sean numéricos
-        for c in [f'A{i}' for i in range(5, 9)] + [f'L{i}' for i in range(1, 9)]:
+        # CORRECCIÓN (Hallazgo Adicional B): Cálculo de promedios Likert con soporte
+        # dual de nombres: cortos (A5-A8, datos sintéticos) y largos (A5_Dificultad, etc.,
+        # datos reales post-corrección). Se filtra por columnas presentes para evitar NaN.
+        likert_a_candidates = [
+            'A5_Dificultad', 'A6_Consideracion_Abandono', 'A7_Exigencia', 'A8_Retrasos',
+            'A5', 'A6', 'A7', 'A8'  # fallback sintético
+        ]
+        likert_l_cols = [f'L{i}' for i in range(1, 9)]
+
+        # Convertir a numérico todos los candidatos presentes
+        for c in likert_a_candidates + likert_l_cols:
             if c in df_hybrid.columns:
                 df_hybrid[c] = pd.to_numeric(df_hybrid[c], errors='coerce').fillna(3)
 
-        df_hybrid['Riesgo_Acad_Perceptual'] = df_hybrid[[f'A{i}' for i in range(5, 9)]].mean(axis=1)
-        df_hybrid['Riesgo_Documental'] = df_hybrid[[f'L{i}' for i in range(1, 9)]].mean(axis=1)
+        # Filtrar columnas realmente presentes (evita NaN por columnas ausentes)
+        present_a = [c for c in likert_a_candidates if c in df_hybrid.columns]
+        present_l = [c for c in likert_l_cols if c in df_hybrid.columns]
+
+        df_hybrid['Riesgo_Acad_Perceptual'] = df_hybrid[present_a].mean(axis=1) if present_a else 3.0
+        df_hybrid['Riesgo_Documental'] = df_hybrid[present_l].mean(axis=1) if present_l else 3.0
 
         df_hybrid['Riesgo_Total'] = 0
         mask_riesgo = (
@@ -118,12 +192,12 @@ def main():
         print("\n[2] Datos cualitativos detectados. Saltando análisis Gemini.")
         df_hybrid = df_raw
 
+
     # --- [3] Integración Híbrida (FASE 10) ---
     print("\n[3] Ejecutando Integración Híbrida Desacoplada...")
     integrator = HybridIntegrator(threshold=float(os.getenv('COHERENCE_THRESHOLD', 0.6)))
     df_hybrid = integrator.integrate(df_hybrid)
     
-    paper_ready_path = os.path.join(root_dir, "data", "processed", "ami_virtu_final_paper_ready.csv")
     df_final = integrator.finalize_paper_ready_dataset(df_hybrid, paper_ready_path)
 
     # --- [4] Inferencia Estadística (FASE 11) ---
@@ -133,15 +207,18 @@ def main():
     # Fiabilidad, Análisis Factorial y Contrastes
     reliability_df = analyzer.calculate_reliability(df_final)
     factor_res = analyzer.run_factor_analysis(df_final)
-    contrasts = analyzer.run_demographic_contrasts(df_final)
+    cfa_res = analyzer.run_confirmatory_factor_analysis(df_final)  # [HC-02]
+    contrasts = analyzer.run_demographic_contrasts(df_final)       # [HC-03] con efecto
     
     # Triangulación Mixta (Cuyo sentiment vs cuanti)
     triangulation_res = analyzer.run_mixed_methods_triangulation(df_final)
     interaction_res = analyzer.run_interaction_analysis(df_final)
+    res_assumptions = analyzer.run_logit_assumption_checks(df_final)  # [HI-04]
     
     # ML Models (Logit & Random Forest)
     X_train, X_test, y_train, y_test = analyzer.prepare_data(df_final)
     res_logit = analyzer.run_logistic_regression(X_train, X_test, y_train, y_test)
+    res_cv    = analyzer.run_logistic_cv(df_final)                 # [HC-05] k-Fold CV
     res_rf = analyzer.run_random_forest(X_train, X_test, y_train, y_test)
 
     # --- [5] Clustering y XAI (Perfilamiento) ---
@@ -150,6 +227,7 @@ def main():
     df_clustered = clusterer.run_clustering(df_final)
     cluster_profiles = clusterer.get_cluster_profiles(df_clustered)
     cluster_val = clusterer.validate_clustering(df_final)
+    archetypes = clusterer.get_archetypal_cases(df_clustered)
     
     xai_features = None
     try:
@@ -160,7 +238,7 @@ def main():
 
     # --- [6] Reporte Doctoral Final (FASE 12) ---
     print("\n[6] Produciendo Artefactos Finales de Defensa...")
-    out_dir = os.path.join(root_dir, 'data', 'outputs')
+    os.makedirs(out_dir, exist_ok=True)
     reporter = ReportGenerator(output_dir=out_dir)
     
     reporter.generate_all_reports(
@@ -171,11 +249,11 @@ def main():
         interaction_res=interaction_res,
         xai_features=xai_features,
         cluster_profiles=cluster_profiles,
-        triangulation_res=triangulation_res
+        triangulation_res=triangulation_res,
+        archetypes=archetypes
     )
 
     # --- [7] Bitácora de Ejecución (REPORTE DE ALTA FIDELIDAD) ---
-    log_path = os.path.join(log_dir, f"bitacora_ejecuciones_{date_str}.log")
     logger = ExecutionLogger(log_path)
     
     # --- [PhD Rigor] Auditoría de Integridad y Entorno ---
@@ -187,6 +265,19 @@ def main():
     details += f"   - SHA-256 Dataset: {data_hash}\n"
     details += f"   - Entorno: Py {env_info['Python_Version']} | Sklearn {env_info['Scikit-Learn']} | Statsmodels {env_info['Statsmodels']}\n"
     details += "   - Estado: INTEGRIDAD VERIFICADA.\n\n"
+
+    details += "0b. VALIDACIÓN CONFIRMATORIA (CFA / Tucker's Φ) [HC-02]:\n"
+    if cfa_res.get('status') == 'success':
+        details += f"   - Método: {cfa_res['method']}\n"
+        details += f"   - Referencia: {cfa_res['reference']}\n"
+        details += f"   - N total: {cfa_res['n_total']} (Mitad A: {cfa_res['n_half_a']}, Mitad B: {cfa_res['n_half_b']})\n"
+        for fac, vals in cfa_res['phi_per_factor'].items():
+            details += f"   - {fac}: Φ = {vals['phi']:.4f} | {vals['interpretation']}\n"
+        details += f"   - Φ Media Global: {cfa_res['phi_mean']:.4f} | RMSR: {cfa_res['rmsr']:.4f}\n"
+        details += f"   - Estructura Confirmada: {'SÍ' if cfa_res['structure_confirmed'] else 'NO'}\n"
+        details += f"   - Interpretación: {cfa_res['overall_interpretation']}\n\n"
+    else:
+        details += f"   - Error CFA: {cfa_res.get('message', 'Desconocido')}\n\n"
     
     details += "1. PSICOMETRÍA Y VALIDACIÓN ESTRUCTURAL:\n"
     details += reliability_df.to_string() + "\n"
@@ -202,10 +293,37 @@ def main():
     incon = df_final['Flag_Inconsistencia'].sum() if 'Flag_Inconsistencia' in df_final.columns else 0
     details += f"   - Casos Sospechosos Detectados: {incon}\n"
     details += "   - Metodología: Filtrado semántico mediante HybridIntegrator.\n\n"
-    
-    details += "3. CONTRASTES SOCIODEMOGRÁFICOS:\n"
-    for k, v in contrasts.items():
-        details += f"   - {k:25}: Estadístico={v['statistic']:.4f}, p-valor={v['p_value']:.4f}\n"
+
+    details += "2b. VERIFICACIÓN DE SUPUESTOS DEL MODELO LOGÍSTICO [HI-04]:\n"
+    # EPV
+    epv = res_assumptions.get('epv', {})
+    details += f"   EPV (Eventos por Variable): {epv.get('interpretation', 'N/A')}\n"
+    # Box-Tidwell
+    bt = res_assumptions.get('box_tidwell', {})
+    if 'per_feature' in bt:
+        details += f"   Box-Tidwell (Linealidad del logit): {bt['overall']}\n"
+        for feat, bv in bt['per_feature'].items():
+            details += f"      * {feat}: {bv['interpretation']}\n"
+    else:
+        details += f"   Box-Tidwell: {bt.get('message', 'N/A')}\n"
+    # Distancia de Cook
+    inf = res_assumptions.get('influential_obs', {})
+    if 'interpretation' in inf:
+        details += f"   Obs. Influyentes (Cook/Leverage): {inf['interpretation']}\n"
+    # Veredicto
+    verd = res_assumptions.get('overall_verdict', {})
+    details += f"   VEREDICTO GLOBAL: {verd.get('summary', 'N/A')}\n\n"
+
+    details += "3. CONTRASTES SOCIODEMOGRÁFICOS (con Tamaño de Efecto) [HC-03]:\n"
+    for k_var, v in contrasts.items():
+        details += f"   - {k_var:25}: F/t={v['statistic']:.4f}, p={v['p_value']:.4f}"
+        if 'cohen_d' in v:
+            details += f", d de Cohen={v['cohen_d']:.4f} ({v['effect_magnitude']})"
+            if v.get('observed_power') is not None:
+                details += f", Potencia (1-β)={v['observed_power']:.4f}"
+        if 'eta2' in v:
+            details += f", η²={v['eta2']:.4f}, η²_parcial={v['eta2_partial']:.4f} ({v['effect_magnitude']})"
+        details += "\n"
 
     details += "\n4. ASOCIACIONES BIVARIADAS (AMI vs RIESGO MULTIDIMENSIONAL):\n"
     biv = analyzer.run_bivariate_analysis(df_final)
@@ -237,6 +355,17 @@ def main():
         details += f"True=1  {cm[1][0]:<6}  {cm[1][1]:<6}\n"
         
         details += f"\n   * Umbral Óptimo (Índice de Youden): {res_logit.get('threshold', 0):.4f}\n"
+        
+        # Cross-Validation [HC-05]
+        details += "\n- VALIDACIÓN CRUZADA ESTRATIFICADA (Stratified k-Fold) [HC-05]:\n"
+        details += f"   * k Pliegues: {res_cv.get('k_folds', 10)}\n"
+        details += f"   * N válidos: {res_cv.get('n_samples', 0)} | Casos Riesgo=1: {res_cv.get('n_positive', 0)}\n"
+        details += f"   * AUC-ROC Media: {res_cv.get('auc_mean', 0):.4f} (± {res_cv.get('auc_std', 0):.4f})\n"
+        ci = res_cv.get('auc_ci_95', [0, 0])
+        details += f"   * IC 95% AUC: [{ci[0]:.4f}, {ci[1]:.4f}]\n"
+        details += f"   * Accuracy Media: {res_cv.get('accuracy_mean', 0):.4f} (± {res_cv.get('accuracy_std', 0):.4f})\n"
+        details += f"   * F1-Score Medio: {res_cv.get('f1_mean', 0):.4f} (± {res_cv.get('f1_std', 0):.4f})\n"
+        details += f"   * Interpretación: {res_cv.get('interpretation', 'N/A')}\n"
         
         # Diagnósticos PhD
         details += "\n- DIAGNÓSTICOS DE RIGOR DOCTORAL (REGR):\n"
@@ -289,8 +418,14 @@ def main():
     except:
         pass
 
+    if archetypes:
+        details += "\n8. MICROSCOPÍA CUALITATIVA (CITAS ARQUETÍPICAS POR GRUPO):\n"
+        for grupo, data in archetypes.items():
+            details += f"   [{grupo}]: \"{data['Quote'][:150]}...\"\n"
+            details += f"      - Temas: {data['Tags']}\n"
+
     if xai_features and 'top_items' in xai_features:
-        details += "\n8. EXPLAINABLE AI (XAI) GRANULAR (TOP 10 ÍTEMS):\n"
+        details += "\n9. EXPLAINABLE AI (XAI) GRANULAR (TOP 10 ÍTEMS):\n"
         for i, (item, impact) in enumerate(xai_features['top_items']):
             details += f"     {i+1}. {item}: Impacto {impact:.4f}\n"
 
@@ -302,7 +437,7 @@ def main():
     )
 
     print("\n==================================================")
-    print("      PROYECTO AMI-VIRTU FINALIADO CON ÉXITO      ")
+    print("      PROYECTO AMI-VIRTU FINALIZADO CON ÉXITO      ")
     print("==================================================")
 
 if __name__ == "__main__":

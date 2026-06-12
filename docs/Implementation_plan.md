@@ -89,24 +89,23 @@ Esta fase transforma el proyecto en un modelo de **Métodos Mixtos** de vanguard
 
 ---
 
-## [POR HACER] Fase 10: Convergencia de Dataset y Limpieza Inteligente
+## Fase 10: Convergencia de Dataset y Limpieza Inteligente (COMPLETADO)
 Esta fase asegura que el motor estadístico use la nueva data cualitativa como un filtro de rigor.
 
-- **Check-pointing:** Implementar guardado incremental en el loop de `main.py` para evitar pérdidas por límites de API.
-- **Filtro de Coherencia Agresivo:** Exclusión automática de registros con `Indice_Coherencia < 0.6` de los modelos de regresión y clustering.
-- **Normalización Híbrida:** Conversión de etiquetas de sentimiento en variables numéricas continuas para su uso como covariables.
+- **Check-pointing:** Implementado el guardado resiliente en `main.py` para manejar límites de API sin pérdida de progreso.
+- **Filtro de Coherencia Agresivo:** Exclusión automática de registros con `Indice_Coherencia < 0.6` de los modelos finales (HybridIntegrator).
+- **Normalización Híbrida:** Conversión de etiquetas de sentimiento y coherencia en variables numéricas continuas para su uso como covariables.
 
-## [POR HACER] Fase 11: Triangulación de Métodos Mixtos
+## Fase 11: Triangulación de Métodos Mixtos (COMPLETADO)
 Cruce científico entre lo que el sistema "calcula" y lo que la IA "comprende".
 
-- **Asociaciones de Dimensión:** Correlacionar `Score_AMI_Global` vs `Sentimiento_Academico`.
-- **Análisis de Discrepancia:** Identificar grupos donde hay alto puntaje AMI pero sentimiento negativo (Potenciales "Bulos" o alumnos en crisis encubierta).
-- **Semántica de clústeres:** Asignar una "Etiqueta Cualitativa" a cada clúster de K-Means basada en el análisis semántico predominante.
+- **Asociaciones de Dimensión:** Correlación automatizada de `Score_AMI_Global` vs `Sentimiento_Academico` y Coherencia.
+- **Análisis de Discrepancia:** Identificación de casos con alto AMI pero sentimiento negativo (crisis encubierta).
+- **Semántica de clústeres:** Caracterización temática de cada clúster basada en el análisis semántico predominante.
 
-## [POR HACER] Fase 12: Visualización y Reporte Doctoral (Final)
-Producción de los artefactos finales para la defensa de tesis.
+## Fase 12: Visualización y Reporte Doctoral Final (COMPLETADO)
+Producción de los artefactos finales para la defensa de tesis con blindaje metodológico total.
 
-- **Dashboards Híbridos:** Gráficos que incluyan "Word Clouds" temáticos y Radar Charts numéricos en una sola vista.
-- **Citas Textuales Automatizadas:** Selección automática de las declaraciones más representativas de cada clúster para ilustrar el reporte narrativo.
-- **Exportación de Paper-Ready Dashboard:** Generación de un PDF/Markdown final que combine el rigor de `statsmodels` con la riqueza de la narrativa cualitativa.
-- **Validación Multidimensional del Riesgo:** Desglosar la variable dependiente en sus sub-dimensiones (Académica, LMS, Continuidad) para cumplir con el Objetivo 2 y enriquecer el perfilamiento del Objetivo 3.
+- **Validación Multidimensional del Riesgo:** Desglose de la variable dependiente en sus sub-dimensiones (**Académica, LMS, Continuidad**) para cumplir con los Objetivos 2 y 3.
+- **Dashboards Híbridos:** Generación de reportes narrativos que combinan el rigor de `statsmodels` con la riqueza de la narrativa cualitativa.
+- **Bitácora de Auditoría Forense:** Registro automatizado de SHA-256 e integridad de entorno para garantizar la reproducibilidad científica.

@@ -32,4 +32,3 @@ Adicionalmente, el rigor se ve reforzado por:
 
 ---
 *Conclusión para Defensa:* La arquitectura XAI de AMI-VIRTU provee una explicación matemáticamente exacta, eliminando la opacidad del modelo y permitiendo una toma de decisiones pedagógicas basada en evidencia irrefutable.
-导导

@@ -21,7 +21,7 @@
 - [x] Caracterización de Arquetipos Pedagógicos (Vulnerable, Adaptativo, Competente).
 
 ### ✅ Fase 5: Triangulación y Síntesis Híbrida (Fases 11 y 12)
-- [x] **Triangulación de Métodos Mixtos:** Cruce de scores numéricos con sentimiento cualitativo (N=295).
+- [x] **Triangulación de Métodos Mixtos:** Cruce de scores numéricos con sentimiento cualitativo (N=302 en real de campo; N=295 en simulación).
 - [x] **Reporte Doctoral Resiliente:** Generación de 7 documentos de alta fidelidad incluyendo evidencias textuales de los estudiantes.
 
 ### ✅ Fase 6: Desacoplamiento y Producción (Fase 13)
@@ -34,10 +34,10 @@
 - [x] Consolidación de Estabilidad de Clústeres: Evaluación vía **Adjusted Rand Index (ARI)** y BIC.
 - [x] Auditoría de Integridad Forense: Implementación de **Hashing SHA-256** para blindaje de datasets.
 - [x] Optimización de Clasificación: Implementación del **Índice de Youden** para maximizar el Recall de riesgo.
+- [x] **Operacionalización Multidimensional (Objetivos 2 y 3):** Implementación de sub-dimensiones de riesgo (Académica, LMS, Continuidad) y matriz de correlación 3x3.
 
 ---
 ## Conclusión de Desarrollo
 El pipeline analítico ha alcanzado la madurez necesaria para su uso en la tesis doctoral. Se han cumplido el 100% de los objetivos específicos (OE1 a OE5) planteados en el marco metodológico.
 
-*Última Actualización: 27 de Abril de 2026*
-导导
+*Última Actualización: 28 de Abril de 2026 (Cierre de Fase Multidimensional) | Revisión: 09 de Junio de 2026*

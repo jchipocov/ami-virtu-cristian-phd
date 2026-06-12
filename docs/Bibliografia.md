@@ -13,6 +13,8 @@ Este documento recopila la fundamentación teórica de la investigación AMI-VIR
 ## 3. Inteligencia Artificial y Métodos Mixtos (Novedad v2.0)
 - **Lundberg & Lee (2017):** Fundamentación de los valores **SHAP** (Explainable AI) para la transparencia algorítmica.
 - **Creswell & Plano Clark (2018):** Metodología de investigación de métodos mixtos para la triangulación de datos cuantitativos y cualitativos.
+- **Touvron, H. et al. (2023):** *Llama 2: Open foundation and fine-tuned chat models*. arXiv:2307.09288. Marco para uso de LLMs en codificación cualitativa asistida.
+- **Gilardi, F., Alizadeh, M., & Kubli, M. (2023):** ChatGPT outperforms crowd-workers for text-annotation tasks. *Proceedings of the National Academy of Sciences, 120*(30). DOI: 10.1073/pnas.2305016120
 
 ## 4. Fundamentación Estadística y Machine Learning
 - **Cronbach, L. J. (1951):** Fundamentos del coeficiente Alfa para consistencia interna.
@@ -31,5 +33,8 @@ Este documento recopila la fundamentación teórica de la investigación AMI-VIR
 - **Selwyn, N. (2021):** *Education and Technology: Key Issues and Debates*. Contexto de la brecha digital.
 
 ---
-*Este sustento bibliográfico valida el diseño experimental y analítico del proyecto.*
-导导
+
+> [!IMPORTANT]
+> **Pendiente (HI-01):** Para el estándar doctoral, la bibliografía debe expandirse a un mínimo de **40-80 referencias** en formato APA 7ª edición, con distribución equilibrada entre: Marco teórico AMI (≥10), Metodología estadística (≥10), Learning Analytics (≥10), XAI/ML (≥8), y Métodos mixtos/NLP (≥5).
+
+*Última actualización: 09 de Junio de 2026 (Revisión Doctoral v2.1)*
