@@ -1,32 +1,21 @@
-# Reporte de Triangulación de Métodos Mixtos: El Puente Ético AMI-VIRTU
+# Reporte de Triangulación de Métodos Mixtos y Sentimiento Narrativo
 
-## 1. Fundamentación de la Triangulación Secuencial
-Siguiendo un diseño de **métodos mixtos de tipo secuencial explicativo**, esta investigación doctoral no se limita a la frialdad del dato estadístico. La triangulación es el proceso de mayor rigor científico en el proyecto, ya que busca la convergencia o divergencia entre el comportamiento numérico (Test AMI) y la expresión subjetiva (Sentimiento Académico) del estudiante.
+## 1. Justificación de los Métodos Mixtos
+De acuerdo con los diseños explicativos secuenciales (DEXPLIS), la mera cuantificación numérica del rendimiento y el riesgo es insuficiente para capturar las barreras subjetivas del estudiante virtual. Este reporte expone la triangulación entre la autopercepción cuantitativa del test AMI y el discurso narrativo cualitativo procesado por NLP.
 
-En este análisis sobre **N=295 casos**, se procesó el lenguaje natural de las respuestas abiertas (`Section B`) mediante un motor de procesamiento de lenguaje natural (NLP) validado, comparando los resultados con los perfiles de riesgo calculados.
+## 2. Análisis de Coherencia y Disonancia Cognitiva
+La triangulación cualitativa con IA (Gemini) sobre los 303 registros evaluó la alineación entre la autopercepción Likert y el relato libre:
+- **Exclusiones por Baja Coherencia:** **24 estudiantes (7.9%)** presentaron un Índice de Coherencia < 0.60.
+- **Riesgo Invisible:** El análisis semántico detectó estudiantes que se calificaron positivamente en la escala Likert, pero en sus comentarios abiertos relataban frustración severa, problemas de conexión o confusión en el campus.
 
-## 2. Resultados de la Convergencia (Cuanti-Cuali)
+## 3. Correlaciones de Triangulación (AMI vs. Riesgo LMS)
+El análisis de correlación bivariada de Pearson entre las puntuaciones AMI y el Riesgo LMS (ARD-VIRTU) demuestra una relación significativa y protectora:
+- **AMI Global vs. Riesgo LMS:** **r = -0.280 (p < 0.001)**
+- **Dimensión Crítica vs. Riesgo LMS:** **r = -0.250**
+- **Dimensión Técnica vs. Riesgo LMS:** **r = -0.215**
+- **Dimensión Participativa vs. Riesgo LMS:** **r = -0.274**
 
-### Métrica de Asociación Global:
-- **Correlación de Pearson ($r$):** **0.842**
-- **Significancia:** $p < 0.0001$
-- **Interpretación:** Existe una asociación "Muy Fuerte" y positiva entre la competencia AMI percibida y la satisfacción emocional con el sistema educativo. Esto valida que la alfabetización mediática es un facilitador psicopedagógico del bienestar estudiantil.
-
-### Análisis de la "Disonancia del Riesgo"
-Uno de los hallazgos más reveladores de la triangulación fue la identificación de un nicho de **14 estudiantes** (4.7% de la muestra) que presentan puntajes AMI altos (promedio > 4.2) pero sentimientos académicos negativos.
-- **Interpretación Doctoral:** Estos casos representan el "Riesgo Invisible". Son estudiantes capaces desde lo técnico, pero que están expresando fatiga o desmotivación en su narrativa cualitativa. Sin este pipeline híbrido, estos alumnos serían ignorados por los sistemas de alerta tradicionales, derivando en deserciones imprevistas.
-
-## 3. Discusión por Categorías Cualitativas
-El análisis textual revela que el sentimiento negativo está fuertemente anclado a la **Dimensión de Participación**:
-- **Hallazgo:** Los alumnos que reportan sentimientos negativos a menudo mencionan la "soledad digital" y la "falta de interacción significativa" en foros.
-- **Evidencia Cuantitativa:** Este sentimiento correlaciona inversamente con los ítems $P1-P5$ del test, sugiriendo que la falta de herramientas participativas es el motor de la alienación académica.
-
-## 4. Mapas de Alineación de Clústeres
-El cruce entre el sentimiento y los clústeres de K-Means (ver `01_matriz_correlacion.png`) muestra que:
-1.  **Clúster Competente:** Posee el 90% de sentimientos positivos (Convergencia Plena).
-2.  **Clúster Vulnerable:** Posee el 78% de sentimientos negativos o neutros (Convergencia de Riesgo).
-3.  **Clúster Adaptativo:** Presenta la mayor dispersión de sentimientos, siendo el grupo donde la tutoría cualitativa personalizada es más urgente.
+> **Conclusión:** Aunque la AMI no correlacione directamente de manera lineal con el estatus final de deserción binaria, sí influye significativamente en la experiencia cotidiana del alumno dentro del campus virtual (riesgo LMS). A mayor literacidad mediática, menor es el riesgo en el LMS.
 
 ---
-*Este reporte cierra el círculo metodológico garantizando una visión humana de la analítica.*
-*Metodología: Triangulación Híbrida Cuanti-Cuali (N=295)*
+*Metodología: NLP (Gemini Flash) + Análisis de Correlación Bivariada de Pearson/Spearman.*

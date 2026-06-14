@@ -95,12 +95,13 @@ class QualitativeEngine:
             res_row["Analisis_Cuali"] = analysis.get("Analisis_Breve")
             
             logging.info(f"Análisis STU: {row.get('ID_Estudiante')} | Coherencia: {analysis.get('Indice_Coherencia')}")
-            time.sleep(1.5) # Rate limit preventivo
+            time.sleep(2.0) # Rate limit preventivo
             
         except Exception as e:
             logging.error(f"Error en análisis {row.get('ID_Estudiante')}: {str(e)}")
-            res_row["Indice_Coherencia"] = 0.5
-            res_row["Analisis_Cuali"] = f"Error: {str(e)}"
+            error_msg = f"ERROR CRÍTICO: La llamada a la API de Gemini falló para el estudiante {row.get('ID_Estudiante')}. Detalles: {str(e)}"
+            print(f"\n{error_msg}\n")
+            raise RuntimeError(error_msg)
             
         return res_row
 

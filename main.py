@@ -1,4 +1,7 @@
 import os
+os.environ['OPENBLAS_NUM_THREADS'] = '1'
+os.environ['MKL_NUM_THREADS'] = '1'
+os.environ['OMP_NUM_THREADS'] = '1'
 import sys
 import pandas as pd
 import warnings
@@ -200,6 +203,47 @@ def main():
     
     df_final = integrator.finalize_paper_ready_dataset(df_hybrid, paper_ready_path)
 
+    # --- [3.5] Imputación MICE de Datos Faltantes (AMI Likert) ---
+    print("\n[3.5] Imputación de datos faltantes (MICE / IterativeImputer)...")
+    ami_items = [f'C{i}' for i in range(1, 11)] + [f'T{i}' for i in range(1, 11)] + [f'P{i}' for i in range(1, 11)]
+    ami_present = [c for c in ami_items if c in df_final.columns]
+
+    # Convertir a numérico (por si quedaron strings residuales)
+    for c in ami_present:
+        df_final[c] = pd.to_numeric(df_final[c], errors='coerce')
+
+    n_missing_before = df_final[ami_present].isnull().sum().sum()
+    if n_missing_before > 0:
+        from sklearn.experimental import enable_iterative_imputer  # noqa: F401
+        from sklearn.impute import IterativeImputer
+
+        imputer = IterativeImputer(random_state=42, max_iter=10)
+        df_final[ami_present] = imputer.fit_transform(df_final[ami_present])
+
+        # Redondear a enteros Likert [1, 5]
+        for c in ami_present:
+            df_final[c] = df_final[c].round().clip(1, 5).astype(int)
+
+        n_missing_after = df_final[ami_present].isnull().sum().sum()
+        n_imputed = n_missing_before - n_missing_after
+
+        # Recalcular scores AMI post-imputación
+        critico_cols = [f'C{i}' for i in range(1, 11)]
+        tecnico_cols = [f'T{i}' for i in range(1, 11)]
+        participativo_cols = [f'P{i}' for i in range(1, 11)]
+
+        df_final['Score_Critico'] = df_final[[c for c in critico_cols if c in df_final.columns]].mean(axis=1)
+        df_final['Score_Tecnico'] = df_final[[c for c in tecnico_cols if c in df_final.columns]].mean(axis=1)
+        df_final['Score_Participativo'] = df_final[[c for c in participativo_cols if c in df_final.columns]].mean(axis=1)
+        df_final['Score_AMI_Global'] = df_final[['Score_Critico', 'Score_Tecnico', 'Score_Participativo']].mean(axis=1)
+
+        # Detalle por dimensión
+        missing_c = sum(1 for c in critico_cols if c in ami_present for _ in range(1) if df_final[c].isnull().sum() == 0)
+        print(f"   -> {n_imputed} valores imputados en {len(ami_present)} columnas AMI.")
+        print(f"   -> Scores AMI recalculados post-imputación. N válido ahora: {df_final['Score_AMI_Global'].notna().sum()}/{len(df_final)}")
+    else:
+        print("   -> No se encontraron datos faltantes en ítems AMI. Sin imputación necesaria.")
+
     # --- [4] Inferencia Estadística (FASE 11) ---
     print("\n[4] Análisis Inferencial y Triangulación Estadística...")
     analyzer = StatsAnalyzer()
@@ -250,7 +294,9 @@ def main():
         xai_features=xai_features,
         cluster_profiles=cluster_profiles,
         triangulation_res=triangulation_res,
-        archetypes=archetypes
+        archetypes=archetypes,
+        cv_results=res_cv,
+        cfa_results=cfa_res
     )
 
     # --- [7] Bitácora de Ejecución (REPORTE DE ALTA FIDELIDAD) ---

@@ -1,42 +1,27 @@
 # Síntesis Ejecutiva Doctoral: Analítica AMI-VIRTU
 
 ## 1. Declaración del Problema y Objetivos
-Esta investigación doctoral aborda el fenómeno de la deserción en la educación superior virtual mediante el lente de la Literacidad Mediática e Informacional (AMI). Sobre una cohorte real de **N=295 estudiantes**, el sistema AMI-VIRTU ha logrado validar una arquitectura de detección precoz del riesgo académico, superando las limitaciones de los modelos basados únicamente en datos sociodemográficos.
+Esta investigación doctoral aborda el fenómeno de la deserción en la educación superior virtual mediante el lente de la Literacidad Mediática e Informacional (AMI). Sobre una cohorte real de **N=279 estudiantes** (con **N=260 estudiantes activos** libres de inconsistencias), el sistema AMI-VIRTU ha logrado validar una arquitectura de detección precoz del riesgo académico y de interactividad digital.
 
 ## 2. Pilares de la Evidencia Empírica
 
-### A. La Competencia Técnica como Detector Maestro
-El modelamiento inferencial (Regresión Logística) identifica a la **Dimensión Técnica** como el predictor más robusto de la persistencia ($p < .001$). El hallazgo de un **Odds Ratio de 0.39** es el núcleo de esta tesis: cada incremento unitario en la habilidad operativa del estudiante reduce las probabilidades de abandono en un **61%**. Esto desplaza el foco de los "problemas económicos" hacia las "barreras de acceso cognitivo-digital".
+### A. Complejidad del Riesgo y Efectos Protectores Indirectos
+El modelamiento inferencial por regresión logística revela que las dimensiones AMI no operan como predictores directos lineales del abandono de forma aislada ($p > 0.05$). En su lugar, la Literacidad Mediática digital actúa como un **factor protector y moderador indirecto** que se relaciona estrechamente con la actividad en el aula virtual (LMS) y el rendimiento percibido del estudiante.
 
-### B. Validación de la Hipótesis del Amplificador
-Mediante el análisis de interacciones ($p=0.0012$), se confirma que la AMI actúa como un **amortiguador resiliencia**. Los estudiantes con alta alfabetización mediática muestran una capacidad de persistencia superior incluso en entornos con baja calidad percibida, lo que sugiere que la formación AMI dota al egresado de una autonomía crítica fundamental para el siglo XXI.
+### B. Triangulación de Métodos Mixtos y el "Riesgo Invisible"
+La integración cualitativa asistida por IA ha permitido identificar a un **7.9% de la muestra** que exhibe disonancia cognitiva severa (baja coherencia) entre sus puntuaciones Likert cuantitativas y sus narrativas cualitativas, lo que representa un subgrupo en **"Riesgo Invisible"** que solo puede ser detectado mediante triangulación híbrida de métodos mixtos.
 
-### C. Triangulación y la "Voz del Estudiante"
-La integración de métodos mixtos permitió detectar un subgrupo de **Riesgo Invisible** (4.7% de la muestra). Estos estudiantes, a pesar de tener altos puntajes técnicos, expresan sentimientos de alienación en sus narrativas cualitativas, lo que demuestra la necesidad de sistemas de analítica de aprendizaje (Learning Analytics) humanos y no solo algorítmicos.
+### C. Invarianza Factorial Confirmada
+La validación confirmatoria mediante split-half reportó un **Coeficiente de Congruencia de Tucker de Φ = 0.9152** para el modelo tridimensional de la escala AMI-VIRTU, superando el estándar doctoral de 0.85 y confirmando que la estructura latente del instrumento es estable y reproducible.
 
-## 3. Taxonomía de Intervención (Arquetipos)
-El motor de clustering ha segmentado la población en tres nichos operativos:
-1.  **Arquetipo Vulnerable (N=67):** El 80% de las deserciones ocurren aquí. Requieren alfabetización técnica urgente.
-2.  **Arquetipo Adaptativo (N=107):** Representan el equilibrio frágil. Sensibles a la calidad docente.
-3.  **Arquetipo Competente (N=58):** Estudiantes líderes y resilientes.
+## 3. Taxonomía de los Perfiles (K-Means)
+La segmentación de perfiles estudiantiles identificó tres grupos principales:
+- **Grupo 0 (Competente, N=79):** Alta literacidad digital y resiliencia.
+- **Grupo 1 (Adaptativo, N=130):** Competencias medias con vulnerabilidad latente.
+- **Grupo 2 (Vulnerable, N=51):** Destrezas bajas en todas las dimensiones y alta prevalencia de riesgo.
 
-## 4. Recomendaciones para la Gestión Universitaria
-1.  **Alfabetización Temprana:** Implementar programas de nivelación técnica obligatorios en el curso de inducción, enfocados específicamente en el ítem **T6** (Dominio de herramientas del campus).
-2.  **Monitorización Híbrida:** Adoptar el pipeline AMI-VIRTU para realizar triangulaciones semestrales que capturen tanto el rendimiento numérico como el sentimiento cualitativo del alumnado.
-3.  **Políticas de Equidad Digital:** El estudio demuestra que no hay brechas de género ni institucionales significativas en la muestra, lo que permite la aplicación de una política de retención transversal y unificada.
-
-## 5. Conclusión Final de la Tesis
-El proyecto AMI-VIRTU demuestra que el éxito del estudiante virtual no depende únicamente de su conexión a internet, sino de su capacidad para **criticar, operar y participar** en el medio digital. Los modelos predictivos desarrollados alcanzan una precisión superior al 79%, proporcionando a las universidades una herramienta de decisión ética, transparente y matemáticamente validada para salvaguardar la democratización de la educación superior.
-
-## 6. Limitaciones del Estudio
-Toda investigación científica debe delimitar su alcance. Las principales limitaciones de este estudio son:
-
-1. **Alcance muestral y contexto:** La cohorte N=295 corresponde a estudiantes de educación virtual en un contexto latinoamericano específico. La generalización de los hallazgos a otros sistemas educativos debe hacerse con cautela y replicación empírica previa.
-2. **Causalidad vs. asociación:** El diseño correlacional-predictivo del estudio permite identificar relaciones estadísticas fuertes (OR=0.39, p<.001), pero no establece causalidad directa. La AMI predice el riesgo; no se puede afirmar que la ausencia de AMI *causa* la deserción.
-3. **Variables omitidas:** El modelo no incluye factores socioeconómicos (ingresos familiares, conectividad), motivación intrínseca ni capital cultural, los cuales pueden actuar como variables de confusión.
-4. **Fase sintética inicial:** Los datos sintéticos generados en la fase de validación del simulador (Cópulas Gaussianas) no pueden equipararse a datos de campo real. Los resultados finales se basan únicamente en la cohorte real.
-5. **Modelo de lenguaje para NLP:** El análisis de sentimiento fue asistido por un LLM (Gemini). La validez de esta codificación cualitativa depende de la calidad del modelo y puede requerir validación inter-rater humana.
+## 4. Conclusiones y Limitaciones
+El estudio valida el rigor de los métodos analíticos mixtos y destaca la importancia de la depuración metodológica de doble filtro de calidad. Las principales limitaciones se asocian al alcance muestral inicial, por lo cual se recomienda una fase de ampliación muestral en etapas posteriores del proyecto.
 
 ---
-*Este documento sintetiza la contribución original al conocimiento de la presente investigación doctoral.*
-*Fecha de Cierre: 27 de Abril de 2026 | Revisión: 09 de Junio de 2026*
+*Este informe resume los hallazgos definitivos de la primera corrida completa del pipeline analítico sobre la muestra real de campo.*
