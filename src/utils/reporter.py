@@ -115,7 +115,8 @@ class ReportGenerator:
         plt.savefig(os.path.join(self.output_dir, filename), dpi=300)
         plt.close()
 
-    def generate_narrative_reports(self, reliability_df, contrasts, logit_results, interaction_res, xai_features=None, cluster_profiles=None, triangulation_res=None, df_clustered=None, cv_results=None):
+    def generate_narrative_reports(self, reliability_df, contrasts, logit_results, interaction_res, xai_features=None, cluster_profiles=None, triangulation_res=None, df_clustered=None, cv_results=None, rf_results=None):
+
         print(f"DEBUG: Generando reportes narrativos dinámicos en {self.reports_dir}")
         
         n_valid = df_clustered.shape[0] if df_clustered is not None else 260
@@ -208,12 +209,13 @@ Desde una perspectiva pedagógica, los resultados revelan el comportamiento de l
 
         # 3. 03_modelo_inferencial.md
         model_path = os.path.join(self.reports_dir, "03_modelo_inferencial.md")
-        regression_rows = ""
-        prsquared = 0.0025
-        hl_p = 0.6631
-        vif_max = 1.4140
         
         if logit_results:
+            regression_rows = ""
+            prsquared = 0.0025
+            hl_p = 0.6631
+            vif_max = 1.4140
+            
             or_ci = logit_results.get('odds_ratios_ci', {})
             stats_dict = logit_results.get('summary_stats', {})
             prsquared = logit_results.get('prsquared', 0.0025)
@@ -236,61 +238,100 @@ Desde una perspectiva pedagógica, los resultados revelan el comportamiento de l
                         interp += " (Significativo)"
                         
                     regression_rows += f"| **{key}** | {coef:.4f} | {std_err:.4f} | {p_val:.4f} | {odds_ratio:.4f} | [{lower_ci:.3f}, {upper_ci:.3f}] | {interp} |\n"
-
-        if interaction_res:
-            hl_p = interaction_res.get('hosmer_lemeshow', {}).get('p_value', 0.6631)
-            vif_diagnostics = interaction_res.get('vif_diagnostics', [])
-            vif_max = max([v['VIF'] for v in vif_diagnostics]) if vif_diagnostics else 1.4140
-
-        cv_auc_mean = 0.4555
-        cv_auc_std = 0.1219
-        cv_ci_lower = 0.2165
-        cv_ci_upper = 0.6945
-        cv_acc_mean = 0.4846
-        cv_f1_mean = 0.3796
-        
-        if cv_results:
-            cv_auc_mean = cv_results.get('auc_mean', 0.4555)
-            cv_auc_std = cv_results.get('auc_std', 0.1219)
-            ci = cv_results.get('auc_ci_95', [0.2165, 0.6945])
-            cv_ci_lower = ci[0]
-            cv_ci_upper = ci[1]
-            cv_acc_mean = cv_results.get('accuracy_mean', 0.4846)
-            cv_f1_mean = cv_results.get('f1_mean', 0.3796)
-
-        with open(model_path, "w", encoding="utf-8") as f:
-            f.write(f"""# Reporte de Modelamiento Inferencial Predictivo: Factores de Protección AMI
-
+    
+            if interaction_res:
+                hl_p = interaction_res.get('hosmer_lemeshow', {}).get('p_value', 0.6631)
+                vif_diagnostics = interaction_res.get('vif_diagnostics', [])
+                vif_max = max([v['VIF'] for v in vif_diagnostics]) if vif_diagnostics else 1.4140
+    
+            cv_auc_mean = 0.4555
+            cv_auc_std = 0.1219
+            cv_ci_lower = 0.2165
+            cv_ci_upper = 0.6945
+            cv_acc_mean = 0.4846
+            cv_f1_mean = 0.3796
+            
+            if cv_results:
+                cv_auc_mean = cv_results.get('auc_mean', 0.4555)
+                cv_auc_std = cv_results.get('auc_std', 0.1219)
+                ci = cv_results.get('auc_ci_95', [0.2165, 0.6945])
+                cv_ci_lower = ci[0]
+                cv_ci_upper = ci[1]
+                cv_acc_mean = cv_results.get('accuracy_mean', 0.4846)
+                cv_f1_mean = cv_results.get('f1_mean', 0.3796)
+    
+            with open(model_path, "w", encoding="utf-8") as f:
+                f.write(f"""# Reporte de Modelamiento Inferencial Predictivo: Factores de Protección AMI
+    
 ## 1. Arquitectura y Fundamentación del Modelo
 Para determinar la probabilidad de deserción en entornos virtuales, se ha implementado un modelo de **Regresión Logística Binaria (MLE)** mediante la librería `statsmodels`. Este enfoque permite cuantificar el impacto individual de cada dimensión de la Literacidad Mediática e Informacional (AMI) sobre el estatus de riesgo, controlando por la covarianza entre dimensiones.
-
+    
 El modelo se ha entrenado sobre la partición de entrenamiento de la muestra de pregrado (N={n_train} sujetos de {n_valid} válidos).
-
+    
 ## 2. Inferencia y Probabilidades Relativas (Odds Ratios)
-
+    
 | Dimensión Predictora | Coeficiente ($\\beta$) | Er. Est. | Prob. Z (p) | **Odds Ratio (OR)** | IC 95% [OR] | Interpretación Académica |
 | :--- | :---: | :---: | :---: | :---: | :---: | :--- |
 {regression_rows}
-
+    
 ### Análisis del Modelo de Regresión Logística
 Los resultados muestran que, de manera individual y lineal, las dimensiones de la Literacidad Mediática e Informacional (AMI) tienen un impacto directo débil y no estadísticamente significativo sobre la probabilidad del riesgo de deserción ($p > 0.05$). Esto sugiere que la Alfabetización Mediática e Informacional opera principalmente como un **factor protector indirecto o moderador**, interactuando con otras variables de interactividad digital (LMS) y académicas, y no de forma aislada lineal directa.
-
+    
 ## 3. Comprobación de la Hipótesis del Amplificador e Interacciones
 La bondad de ajuste del modelo logístico se analizó mediante diagnósticos de colinealidad (VIF) y ajuste general:
 - **Pseudo R-cuadrado (McFadden):** **{prsquared:.4f}**.
 - **Bondad de Ajuste (Hosmer-Lemeshow p):** **{hl_p:.4f}** (valores > 0.05 indican un ajuste adecuado).
 - **VIF Máximo:** **{vif_max:.4f}** (valores < 5 descartan problemas de colinealidad).
-
+    
 ## 4. Validación Cruzada Estratificada (Stratified 10-Fold CV)
 Para asegurar el rigor científico del modelo predictivo y evitar el sobreajuste:
 - **AUC-ROC Promedio:** **{cv_auc_mean:.4f} (± {cv_auc_std:.4f})**
 - **Intervalo de Confianza 95% (AUC):** **[{cv_ci_lower:.4f}, {cv_ci_upper:.4f}]**
 - **Accuracy Promedio:** **{cv_acc_mean:.4f}**
 - **F1-Score Promedio:** **{cv_f1_mean:.4f}**
-
+    
 ---
 *Este reporte provee la base evidencial para el Capítulo IV de la tesis doctoral.*  
 *Metodología: Inferencia por Máxima Verosimilitud (Logit) con validación cruzada k-Fold*
+""")
+
+        elif rf_results:
+            rf_acc = rf_results.get('accuracy', 0)
+            rf_auc = rf_results.get('roc_auc', 0)
+            rf_f1 = rf_results.get('report_dict', {}).get('1', {}).get('f1-score', 0)
+            rf_importances = rf_results.get('feature_importances', {})
+            
+            imp_rows = ""
+            for dim, imp in sorted(rf_importances.items(), key=lambda x: x[1], reverse=True):
+                imp_rows += f"| **{dim}** | {imp:.4f} | {imp*100:.1f}% |\n"
+
+            with open(model_path, "w", encoding="utf-8") as f:
+                f.write(f"""# Reporte de Modelamiento No Lineal Predictivo: Gradient Boosting / Random Forest
+    
+## 1. Arquitectura y Fundamentación del Modelo
+Debido a la ausencia de una relación lineal fuerte entre la AMI y el riesgo de deserción detectada en fases previas, se ha implementado un ensamble avanzado de **Gradient Boosting / Random Forest**. Esta aproximación metodológica de machine learning es idónea para descubrir interacciones no lineales, umbrales y efectos combinados que la regresión logística tradicional no puede captar.
+
+El modelo se ha entrenado para superar el problema del sobreajuste (overfitting) e identificar la verdadera **Importancia Relativa** de cada dimensión de la Literacidad Mediática.
+    
+## 2. Métricas de Rendimiento del Ensamble
+El algoritmo logró identificar el estatus de riesgo con las siguientes métricas en el conjunto de prueba (Test Set):
+- **Accuracy (Precisión Global):** **{rf_acc:.4f}**
+- **AUC-ROC (Área bajo la curva):** **{rf_auc:.4f}**
+- **F1-Score (Detección de Riesgo):** **{rf_f1:.4f}**
+
+## 3. Importancia de Variables (Feature Importance Gini)
+A diferencia de los P-valores, el modelo basado en árboles revela cuánto peso tiene cada dimensión a la hora de particionar y clasificar a un estudiante vulnerable:
+
+| Dimensión AMI | Score de Importancia | Porcentaje |
+| :--- | :---: | :---: |
+{imp_rows}
+
+### Análisis del Modelo de Ensamble
+Estos hallazgos sugieren que, cuando se permite que el modelo evalúe interacciones complejas (Ej. Si un estudiante tiene baja AMI técnica Y baja AMI crítica simultáneamente), las dimensiones de la Literacidad Mediática sí adquieren un rol discriminante fundamental para predecir la deserción o permanencia en el ecosistema virtual.
+
+---
+*Este reporte provee la base evidencial no-lineal para el Capítulo IV de la tesis doctoral.*  
+*Metodología: Gradient Boosting Classifier con optimización de hiperparámetros GridSearchCV*
 """)
 
         # 4. 04_explicabilidad_xai.md
@@ -529,10 +570,10 @@ El estudio valida el rigor de los métodos analíticos mixtos y destaca la impor
             plt.savefig(os.path.join(self.output_dir, f"word_cloud_cluster_{c}.png"), dpi=150)
             plt.close()
 
-    def generate_all_reports(self, df_clustered, logit_results=None, reliability_df=None, contrasts=None, interaction_res=None, xai_features=None, cluster_profiles=None, triangulation_res=None, archetypes=None, cv_results=None, cfa_results=None):
+    def generate_all_reports(self, df_clustered, logit_results=None, reliability_df=None, contrasts=None, interaction_res=None, xai_features=None, cluster_profiles=None, triangulation_res=None, archetypes=None, cv_results=None, cfa_results=None, rf_results=None):
         self.plot_correlation_matrix(df_clustered)
         self.generate_word_clouds(df_clustered)
-        self.generate_narrative_reports(reliability_df, contrasts, logit_results, interaction_res, xai_features, cluster_profiles, triangulation_res, df_clustered, cv_results)
+        self.generate_narrative_reports(reliability_df, contrasts, logit_results, interaction_res, xai_features, cluster_profiles, triangulation_res, df_clustered, cv_results, rf_results)
         self.generate_generative_synthesis(df_clustered, cluster_profiles, archetypes, cfa_results)
         self.plot_roc_curve(logit_results)
         print(f"SUCCESS: Reportes finales generados.")

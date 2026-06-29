@@ -47,6 +47,7 @@ def main():
     load_dotenv()
     data_source = os.getenv("DATA_SOURCE", "real").strip().lower()
     generate_synthetic = os.getenv("GENERATE_SYNTHETIC", "false").strip().lower() == "true"
+    risk_model_type = os.getenv("PREDICTIVE_RISK_MODEL_TYPE", "both").strip().lower()
     
     # --- [1] Carga y Preparación de Datos Desacoplada ---
     if data_source == "real":
@@ -256,14 +257,27 @@ def main():
     
     # Triangulación Mixta (Cuyo sentiment vs cuanti)
     triangulation_res = analyzer.run_mixed_methods_triangulation(df_final)
-    interaction_res = analyzer.run_interaction_analysis(df_final)
-    res_assumptions = analyzer.run_logit_assumption_checks(df_final)  # [HI-04]
     
     # ML Models (Logit & Random Forest)
     X_train, X_test, y_train, y_test = analyzer.prepare_data(df_final)
-    res_logit = analyzer.run_logistic_regression(X_train, X_test, y_train, y_test)
-    res_cv    = analyzer.run_logistic_cv(df_final)                 # [HC-05] k-Fold CV
-    res_rf = analyzer.run_random_forest(X_train, X_test, y_train, y_test)
+    
+    res_logit = None
+    res_cv = None
+    res_rf = None
+    interaction_res = None
+    res_assumptions = None
+    
+    if risk_model_type in ["linear", "both"]:
+        print("   -> Ejecutando Modelo Lineal (Regresión Logística)...")
+        interaction_res = analyzer.run_interaction_analysis(df_final)
+        res_assumptions = analyzer.run_logit_assumption_checks(df_final)  # [HI-04]
+        res_logit = analyzer.run_logistic_regression(X_train, X_test, y_train, y_test)
+        res_cv    = analyzer.run_logistic_cv(df_final)                 # [HC-05] k-Fold CV
+        
+    if risk_model_type in ["rf", "tree", "both"]:
+        print("   -> Ejecutando Modelo No Lineal (Random Forest / Gradient Boosting)...")
+        res_rf = analyzer.run_random_forest(X_train, X_test, y_train, y_test)
+
 
     # --- [5] Clustering y XAI (Perfilamiento) ---
     print("\n[5] Generando Perfiles Sociológicos y SHAP Analysis...")
@@ -296,7 +310,8 @@ def main():
         triangulation_res=triangulation_res,
         archetypes=archetypes,
         cv_results=res_cv,
-        cfa_results=cfa_res
+        cfa_results=cfa_res,
+        rf_results=res_rf
     )
 
     # --- [7] Bitácora de Ejecución (REPORTE DE ALTA FIDELIDAD) ---
@@ -340,25 +355,26 @@ def main():
     details += f"   - Casos Sospechosos Detectados: {incon}\n"
     details += "   - Metodología: Filtrado semántico mediante HybridIntegrator.\n\n"
 
-    details += "2b. VERIFICACIÓN DE SUPUESTOS DEL MODELO LOGÍSTICO [HI-04]:\n"
-    # EPV
-    epv = res_assumptions.get('epv', {})
-    details += f"   EPV (Eventos por Variable): {epv.get('interpretation', 'N/A')}\n"
-    # Box-Tidwell
-    bt = res_assumptions.get('box_tidwell', {})
-    if 'per_feature' in bt:
-        details += f"   Box-Tidwell (Linealidad del logit): {bt['overall']}\n"
-        for feat, bv in bt['per_feature'].items():
-            details += f"      * {feat}: {bv['interpretation']}\n"
-    else:
-        details += f"   Box-Tidwell: {bt.get('message', 'N/A')}\n"
-    # Distancia de Cook
-    inf = res_assumptions.get('influential_obs', {})
-    if 'interpretation' in inf:
-        details += f"   Obs. Influyentes (Cook/Leverage): {inf['interpretation']}\n"
-    # Veredicto
-    verd = res_assumptions.get('overall_verdict', {})
-    details += f"   VEREDICTO GLOBAL: {verd.get('summary', 'N/A')}\n\n"
+    if res_assumptions:
+        details += "2b. VERIFICACIÓN DE SUPUESTOS DEL MODELO LOGÍSTICO [HI-04]:\n"
+        # EPV
+        epv = res_assumptions.get('epv', {})
+        details += f"   EPV (Eventos por Variable): {epv.get('interpretation', 'N/A')}\n"
+        # Box-Tidwell
+        bt = res_assumptions.get('box_tidwell', {})
+        if 'per_feature' in bt:
+            details += f"   Box-Tidwell (Linealidad del logit): {bt['overall']}\n"
+            for feat, bv in bt['per_feature'].items():
+                details += f"      * {feat}: {bv['interpretation']}\n"
+        else:
+            details += f"   Box-Tidwell: {bt.get('message', 'N/A')}\n"
+        # Distancia de Cook
+        inf = res_assumptions.get('influential_obs', {})
+        if 'interpretation' in inf:
+            details += f"   Obs. Influyentes (Cook/Leverage): {inf['interpretation']}\n"
+        # Veredicto
+        verd = res_assumptions.get('overall_verdict', {})
+        details += f"   VEREDICTO GLOBAL: {verd.get('summary', 'N/A')}\n\n"
 
     details += "3. CONTRASTES SOCIODEMOGRÁFICOS (con Tamaño de Efecto) [HC-03]:\n"
     for k_var, v in contrasts.items():
@@ -378,8 +394,8 @@ def main():
         for ami_feat, v in ami_corrs.items():
             details += f"     * {ami_feat:20}: Pearson_r={v['Pearson_r']:+.3f} (p={v['P_Pearson']:.4f}) | Spearman_rho={v['Spearman_rho']:+.3f}\n"
 
-    details += "\n5. MODELO DE REGRESIÓN LOGÍSTICA (INFERENCIA CIENTÍFICA):\n"
     if res_logit:
+        details += "\n5. MODELO DE REGRESIÓN LOGÍSTICA (INFERENCIA CIENTÍFICA):\n"
         details += "- Resumen Completo del Modelo:\n"
         details += res_logit.get('full_summary', 'N/A') + "\n"
         
@@ -403,22 +419,24 @@ def main():
         details += f"\n   * Umbral Óptimo (Índice de Youden): {res_logit.get('threshold', 0):.4f}\n"
         
         # Cross-Validation [HC-05]
-        details += "\n- VALIDACIÓN CRUZADA ESTRATIFICADA (Stratified k-Fold) [HC-05]:\n"
-        details += f"   * k Pliegues: {res_cv.get('k_folds', 10)}\n"
-        details += f"   * N válidos: {res_cv.get('n_samples', 0)} | Casos Riesgo=1: {res_cv.get('n_positive', 0)}\n"
-        details += f"   * AUC-ROC Media: {res_cv.get('auc_mean', 0):.4f} (± {res_cv.get('auc_std', 0):.4f})\n"
-        ci = res_cv.get('auc_ci_95', [0, 0])
-        details += f"   * IC 95% AUC: [{ci[0]:.4f}, {ci[1]:.4f}]\n"
-        details += f"   * Accuracy Media: {res_cv.get('accuracy_mean', 0):.4f} (± {res_cv.get('accuracy_std', 0):.4f})\n"
-        details += f"   * F1-Score Medio: {res_cv.get('f1_mean', 0):.4f} (± {res_cv.get('f1_std', 0):.4f})\n"
-        details += f"   * Interpretación: {res_cv.get('interpretation', 'N/A')}\n"
+        if res_cv:
+            details += "\n- VALIDACIÓN CRUZADA ESTRATIFICADA (Stratified k-Fold) [HC-05]:\n"
+            details += f"   * k Pliegues: {res_cv.get('k_folds', 10)}\n"
+            details += f"   * N válidos: {res_cv.get('n_samples', 0)} | Casos Riesgo=1: {res_cv.get('n_positive', 0)}\n"
+            details += f"   * AUC-ROC Media: {res_cv.get('auc_mean', 0):.4f} (± {res_cv.get('auc_std', 0):.4f})\n"
+            ci = res_cv.get('auc_ci_95', [0, 0])
+            details += f"   * IC 95% AUC: [{ci[0]:.4f}, {ci[1]:.4f}]\n"
+            details += f"   * Accuracy Media: {res_cv.get('accuracy_mean', 0):.4f} (± {res_cv.get('accuracy_std', 0):.4f})\n"
+            details += f"   * F1-Score Medio: {res_cv.get('f1_mean', 0):.4f} (± {res_cv.get('f1_std', 0):.4f})\n"
+            details += f"   * Interpretación: {res_cv.get('interpretation', 'N/A')}\n"
         
         # Diagnósticos PhD
-        details += "\n- DIAGNÓSTICOS DE RIGOR DOCTORAL (REGR):\n"
-        details += f"   * Bondad de Ajuste (Hosmer-Lemeshow p): {interaction_res['hosmer_lemeshow']['p_value']:.4f}\n"
-        details += f"   * Pseudo R-cuadrado (McFadden): {res_logit.get('prsquared', 0):.4f}\n"
-        details += f"   * Interpretación de Ajuste: {interaction_res['interpretation_hl']}\n"
-        details += f"   * Diagnóstico de Multicolinealidad (VIF Max): {max([v['VIF'] for v in interaction_res['vif_diagnostics']] + [0]):.4f}\n"
+        if interaction_res:
+            details += "\n- DIAGNÓSTICOS DE RIGOR DOCTORAL (REGR):\n"
+            details += f"   * Bondad de Ajuste (Hosmer-Lemeshow p): {interaction_res['hosmer_lemeshow']['p_value']:.4f}\n"
+            details += f"   * Pseudo R-cuadrado (McFadden): {res_logit.get('prsquared', 0):.4f}\n"
+            details += f"   * Interpretación de Ajuste: {interaction_res['interpretation_hl']}\n"
+            details += f"   * Diagnóstico de Multicolinealidad (VIF Max): {max([v['VIF'] for v in interaction_res['vif_diagnostics']] + [0]):.4f}\n"
         
         # Odds Ratios
         details += "\n- ODDS RATIOS [Exp(B)] E INTERVALOS DE CONFIANZA:\n"
@@ -426,8 +444,8 @@ def main():
         for var, metrics in or_ci.items():
             details += f"   * {var:15}: OR={metrics['OR']:.4f} | IC 95%=[{metrics['Lower_CI']:.3f}, {metrics['Upper_CI']:.3f}]\n"
 
-    details += "\n6. ENSAMBLES AVANZADOS (GRADIENT BOOSTING):\n"
     if res_rf:
+        details += "\n6. ENSAMBLES AVANZADOS (GRADIENT BOOSTING / RANDOM FOREST):\n"
         details += f"   - Accuracy: {res_rf.get('accuracy', 0):.4f}\n"
         details += f"   - ROC-AUC:  {res_rf.get('roc_auc', 0):.4f}\n"
         
@@ -439,6 +457,7 @@ def main():
         for dim, imp in res_rf.get('feature_importances', {}).items():
             bar = "#" * int(imp * 50)
             details += f"      {dim:15} | {imp:.4f} | {bar}\n"
+
 
     details += "\n7. SEGMENTACIÓN MULTIALGORITMO:\n"
     # El ClusteringEngine provee perfiles para todos los algoritmos
@@ -475,12 +494,20 @@ def main():
         for i, (item, impact) in enumerate(xai_features['top_items']):
             details += f"     {i+1}. {item}: Impacto {impact:.4f}\n"
 
+    # Si logit no se corrió, usamos la accuracy de rf para el log
+    final_accuracy = 0
+    if res_logit:
+        final_accuracy = res_logit.get('accuracy', 0)
+    elif res_rf:
+        final_accuracy = res_rf.get('accuracy', 0)
+
     logger.log_run(
         env="Híbrido (Restauración Doctoral)", 
         num_records=len(df_final), 
-        accuracy=res_logit.get('accuracy', 0) if res_logit else 0,
+        accuracy=final_accuracy,
         details=details
     )
+
 
     print("\n==================================================")
     print("      PROYECTO AMI-VIRTU FINALIZADO CON ÉXITO      ")
