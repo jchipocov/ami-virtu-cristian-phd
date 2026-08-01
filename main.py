@@ -52,13 +52,13 @@ def main():
     # --- [1] Carga y Preparación de Datos Desacoplada ---
     if data_source == "real":
         # Flujo de Datos Reales
-        hybrid_input = os.path.join(root_dir, "data", "processed", "real_hybrid_analysis_results.csv")
-        paper_ready_path = os.path.join(root_dir, "data", "processed", "real_ami_virtu_final_paper_ready.csv")
-        out_dir = os.path.join(root_dir, 'data', 'outputs', 'real')
-        log_path = os.path.join(log_dir, f"real_bitacora_ejecuciones_{date_str}.log")
+        hybrid_input = os.path.join(root_dir, "data", "processed", "real_hybrid_analysis_results_823.csv")
+        paper_ready_path = os.path.join(root_dir, "data", "processed", "real_ami_virtu_final_paper_ready_823.csv")
+        out_dir = os.path.join(root_dir, 'data', 'outputs', 'real_823')
+        log_path = os.path.join(log_dir, f"real_bitacora_ejecuciones_823_{date_str}.log")
         
         if not os.path.exists(hybrid_input):
-            excel_raw = os.path.join(root_dir, "data", "raw", "Formulario de Investigación Académica Doctoral - BIU (2).xlsx")
+            excel_raw = os.path.join(root_dir, "data", "raw", "Formulario de Investigación Académica Doctoral - BIU(823).xlsx")
             if os.path.exists(excel_raw):
                 print(f"\n[1] Generando dataset real desde el Excel: {excel_raw}")
                 loader = RealDataLoader(excel_raw)
@@ -144,58 +144,48 @@ def main():
             processed_rows.append(analyzed_row)
         df_hybrid = pd.DataFrame(processed_rows)
         
-        # Mapeo de categorías a números (ARD-VIRTU Completo)
-        map_interrupcion = {'Sí': 1, 'No': 0}
-        map_desaprobados = {'Nunca': 0, 'En un Curso': 1, 'En dos o más': 2}
-        map_retirados = {'No': 0, 'Sí, en una ocasión': 1, 'Sí, en más de una ocasión': 2}
-        map_rendimiento = {'Alto': 1, 'Medio': 2, 'Bajo': 3}
-        
-        df_hybrid['A1_num'] = df_hybrid['A1_Interrupcion'].map(map_interrupcion).fillna(0)
-        df_hybrid['A2_num'] = df_hybrid['A2_Desaprobados'].map(map_desaprobados).fillna(0)
-        df_hybrid['A3_num'] = df_hybrid['A3_Retirados'].map(map_retirados).fillna(0)
-        df_hybrid['A4_num'] = df_hybrid['A4'].map(map_rendimiento).fillna(1)
-
-        # CORRECCIÓN (Hallazgo Adicional B): Cálculo de promedios Likert con soporte
-        # dual de nombres: cortos (A5-A8, datos sintéticos) y largos (A5_Dificultad, etc.,
-        # datos reales post-corrección). Se filtra por columnas presentes para evitar NaN.
-        likert_a_candidates = [
-            'A5_Dificultad', 'A6_Consideracion_Abandono', 'A7_Exigencia', 'A8_Retrasos',
-            'A5', 'A6', 'A7', 'A8'  # fallback sintético
-        ]
-        likert_l_cols = [f'L{i}' for i in range(1, 9)]
-
-        # Convertir a numérico todos los candidatos presentes
-        for c in likert_a_candidates + likert_l_cols:
-            if c in df_hybrid.columns:
-                df_hybrid[c] = pd.to_numeric(df_hybrid[c], errors='coerce').fillna(3)
-
-        # Filtrar columnas realmente presentes (evita NaN por columnas ausentes)
-        present_a = [c for c in likert_a_candidates if c in df_hybrid.columns]
-        present_l = [c for c in likert_l_cols if c in df_hybrid.columns]
-
-        df_hybrid['Riesgo_Acad_Perceptual'] = df_hybrid[present_a].mean(axis=1) if present_a else 3.0
-        df_hybrid['Riesgo_Documental'] = df_hybrid[present_l].mean(axis=1) if present_l else 3.0
-
-        df_hybrid['Riesgo_Total'] = 0
-        mask_riesgo = (
-            (df_hybrid['A1_num'] == 1) |
-            (df_hybrid['A2_num'] >= 2) |
-            (df_hybrid['A3_num'] >= 1) |
-            (df_hybrid['A4_num'] == 3) |
-            (df_hybrid['Riesgo_Acad_Perceptual'] > 3.5) |
-            (df_hybrid['Riesgo_Documental'] > 3.5)
-        )
-        df_hybrid.loc[mask_riesgo, 'Riesgo_Total'] = 1
-        
-        # Eliminar columnas temporales de cálculo
-        tmp_cols = ['A1_num', 'A2_num', 'A3_num', 'A4_num', 'Riesgo_Acad_Perceptual', 'Riesgo_Documental']
-        df_hybrid.drop(tmp_cols, axis=1, inplace=True, errors='ignore')
-        
         df_hybrid.to_csv(hybrid_input, index=False)
     else:
         print("\n[2] Datos cualitativos detectados. Saltando análisis Gemini.")
         df_hybrid = df_raw
 
+    # --- RECONSTRUCCIÓN DINÁMICA DE VARIABLES PREDICTIVAS ---
+    map_interrupcion = {'Sí': 1, 'No': 0}
+    map_desaprobados = {'Nunca': 0, 'En un Curso': 1, 'En dos o más': 2}
+    map_retirados = {'No': 0, 'Sí, en una ocasión': 1, 'Sí, en más de una ocasión': 2}
+    map_rendimiento = {'Alto': 1, 'Medio': 2, 'Bajo': 3}
+    
+    df_hybrid['A1_num'] = df_hybrid['A1_Interrupcion'].map(map_interrupcion).fillna(0)
+    df_hybrid['A2_num'] = df_hybrid['A2_Desaprobados'].map(map_desaprobados).fillna(0)
+    df_hybrid['A3_num'] = df_hybrid['A3_Retirados'].map(map_retirados).fillna(0)
+    df_hybrid['A4_num'] = df_hybrid['A4'].map(map_rendimiento).fillna(1)
+
+    likert_a_candidates = [
+        'A5_Dificultad', 'A6_Consideracion_Abandono', 'A7_Exigencia', 'A8_Retrasos',
+        'A5', 'A6', 'A7', 'A8'
+    ]
+    likert_l_cols = [f'L{i}' for i in range(1, 9)]
+
+    for c in likert_a_candidates + likert_l_cols:
+        if c in df_hybrid.columns:
+            df_hybrid[c] = pd.to_numeric(df_hybrid[c], errors='coerce').fillna(3)
+
+    present_a = [c for c in likert_a_candidates if c in df_hybrid.columns]
+    present_l = [c for c in likert_l_cols if c in df_hybrid.columns]
+
+    df_hybrid['Riesgo_Acad_Perceptual'] = df_hybrid[present_a].mean(axis=1) if present_a else 3.0
+    df_hybrid['Riesgo_Documental'] = df_hybrid[present_l].mean(axis=1) if present_l else 3.0
+
+    df_hybrid['Riesgo_Total'] = 0
+    mask_riesgo = (
+        (df_hybrid['A1_num'] == 1) |
+        (df_hybrid['A2_num'] >= 2) |
+        (df_hybrid['A3_num'] >= 1) |
+        (df_hybrid['A4_num'] == 3) |
+        (df_hybrid['Riesgo_Acad_Perceptual'] > 3.5) |
+        (df_hybrid['Riesgo_Documental'] > 3.5)
+    )
+    df_hybrid.loc[mask_riesgo, 'Riesgo_Total'] = 1
 
     # --- [3] Integración Híbrida (FASE 10) ---
     print("\n[3] Ejecutando Integración Híbrida Desacoplada...")

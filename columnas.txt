@@ -1,0 +1,67 @@
+0: ID
+1: Hora de inicio
+2: Hora de finalizaci¾n
+3: Correo electr¾nico
+4: Nombre
+5: Hora de la ·ltima modificaci¾n
+6: Beneficios Potenciales para el ParticipanteáNo se anticipan beneficios directos o inmediatos para usted por su participaci¾n en este estudio. Sin embargo, su participaci¾n puede generar beneficios...
+7: Indique la universidad a la que pertenece:
+8: Entre 2022 y 2025, ┐alguno de sus cursos universitarios incorpor¾ actividades virtuales o herramientas digitales para el aprendizaje?
+9: C1. Identifico con claridad la intenci¾n y el p·blico objetivo de los contenidos digitales que utilizo en mis estudios.
+10: C2. Verifico la fuente y la evidencia antes de utilizar informaci¾n digital en mis trabajos acadÚmicos.
+11: C3. Distingo hechos de opiniones en textos, videos o publicaciones digitales relacionadas con mis cursos.
+12: C4. Reconozco posibles sesgos o intereses detrßs de la informaci¾n que consumo en entornos digitales.
+13: C5. Eval·o la calidad y confiabilidad de grßficos, tablas o estadÝsticas obtenidas en lÝnea.
+14: C6. Suelo utilizar informaci¾n digital en mis trabajos acadÚmicos sin comprobar su veracidad.
+15: C7. Reconozco c¾mo la personalizaci¾n de contenidos (por ejemplo, recomendaciones automßticas) influye en la informaci¾n que visualizo en plataformas digitales.
+16: C8. Identifico prßcticas Úticas y posibles conflictos de interÚs en contenidos digitales de carßcter acadÚmico o educativo.
+17: C9. Contrasto informaci¾n de diversas fuentes digitales antes de llegar a una conclusi¾n acadÚmica.
+18: C10. Identifico se±ales de desinformaci¾n en contenidos digitales (titulares enga±osos, datos fuera de contexto o manipulaci¾n de informaci¾n).
+19: T1. Gestiono eficientemente recursos digitales para el aprendizaje.
+20: T2. Utilizo herramientas tecnol¾gicas para colaborar en proyectos.
+21: T3. Resuelvo problemas tÚcnicos en entornos virtuales.
+22: T4. Organizo mi tiempo para cumplir con actividades acadÚmicas.
+23: T5. Aplico estrategias para optimizar mi estudio en modalidad virtual.
+24: T6. Manejo plataformas educativas con facilidad.
+25: T7. Realizo presentaciones utilizando software especializado.
+26: T8. Participo en foros virtuales de manera activa.
+27: T9. Utilizo aplicaciones para gestionar tareas acadÚmicas.
+28: T10. Adapto mi aprendizaje a nuevas tecnologÝas.
+29: P1. Participo activamente en discusiones acadÚmicas.
+30: P2. Colaboro con compa±eros en proyectos grupales.
+31: P3. Expreso mis ideas en espacios virtuales.
+32: P4. Escucho y respeto opiniones diferentes.
+33: P5. Contribuyo a la soluci¾n de problemas en equipo.
+34: P6. Me involucro en actividades extracurriculares virtuales.
+35: P7. Apoyo a otros estudiantes en el uso de tecnologÝa.
+36: P8. Promuevo la participaci¾n de mis compa±eros.
+37: P9. Mantengo una comunicaci¾n efectiva en entornos virtuales.
+38: P10. Participo en actividades institucionales en lÝnea.
+39: ┐C¾mo identifica problemas relevantes en su ßrea de estudio?
+40: ┐C¾mo analiza crÝticamente la informaci¾n recibida?
+41: ┐C¾mo cuestiona los supuestos de los temas tratados?
+42: ┐C¾mo valora diferentes perspectivas en el anßlisis acadÚmico?
+43: ┐C¾mo busca evidencias para sustentar sus opiniones?
+44: ┐C¾mo gestiona eficientemente recursos digitales para el aprendizaje?
+45: ┐C¾mo utiliza herramientas tecnol¾gicas para colaborar en proyectos?
+46: ┐C¾mo resuelve problemas tÚcnicos en entornos virtuales?
+47: ┐C¾mo organiza su tiempo para cumplir con actividades acadÚmicas?
+48: ┐C¾mo participa activamente en discusiones acadÚmicas?
+49: ┐C¾mo colabora con compa±eros en proyectos grupales?
+50: ┐C¾mo expresa sus ideas en espacios virtuales?
+51: A1 -áHe interrumpido mi matrÝcula universitaria por al menos un semestre durante mis estudios.
+52: A2 -áHe desaprobado uno o mßs cursos en modalidad virtual.
+53: A3 -áHe retirado o abandonado alg·n curso virtual antes de finalizarlo.
+54: A4 -áEn el ·ltimo ciclo o curso virtual, considero que mi rendimiento acadÚmico (notas y cumplimiento de actividades) fue adecuado.
+55: He tenido dificultades acadÚmicas sostenidas en cursos virtuales
+56: He considerado seriamente abandonar uno o mßs cursos virtuales por motivos acadÚmicos.
+57: En el ·ltimo ciclo o curso virtual, me he sentido con dificultades para cumplir con las exigencias acadÚmicas de los cursos virtuales.
+58: He acumulado retrasos acadÚmicos en cursos virtuales que luego han sido difÝciles de revertir
+59: Me cuesta mantener un acceso regular al aula virtual de mis cursos.
+60: En el ·ltimo curso virtual, pasÚ varios dÝas seguidos sin ingresar al aula virtual.
+61:         He   omitido o entregado fuera de plazo actividades acadÚmicas virtuales      
+62: No reviso con regularidad los avisos, cronogramas y actividades publicados en el aula virtual.
+63: Mi participaci¾n en foros u otras actividades virtuales ha sido irregular.
+64:         En   cursos con sesiones sincr¾nicas, he dejado de asistir sin una justificaci¾n   clara.      
+65: A medida que avanzaba el curso, sentÝ que me iba desvinculando de las actividades virtuales
+66: Mi nivel de participaci¾n en el aula virtual influy¾ en mi intenci¾n de continuar o abandonar el curso.

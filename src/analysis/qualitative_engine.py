@@ -99,9 +99,13 @@ class QualitativeEngine:
             
         except Exception as e:
             logging.error(f"Error en análisis {row.get('ID_Estudiante')}: {str(e)}")
-            error_msg = f"ERROR CRÍTICO: La llamada a la API de Gemini falló para el estudiante {row.get('ID_Estudiante')}. Detalles: {str(e)}"
-            print(f"\n{error_msg}\n")
-            raise RuntimeError(error_msg)
+            error_msg = f"Advertencia: Falló análisis de {row.get('ID_Estudiante')} (posible JSON malformado de Gemini). Asignando 'Error API' y continuando..."
+            print(f"   [!] {error_msg}")
+            
+            res_row["Sentimiento_Academico"] = np.nan
+            res_row["Indice_Coherencia"] = np.nan
+            res_row["Etiquetas_Tematicas"] = "Error API"
+            res_row["Analisis_Cuali"] = f"Error: {str(e)}"
             
         return res_row
 
