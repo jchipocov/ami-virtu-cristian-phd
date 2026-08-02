@@ -11,11 +11,11 @@ En este estudio, con una muestra consolidada de **N=702 estudiantes**, se optó 
 
 | Dimension        |   Cronbach_Alpha |   McDonald_Omega | CI_95%         |
 |:-----------------|-----------------:|-----------------:|:---------------|
-| Critico          |         0.815109 |         0.831411 | [0.794, 0.834] |
-| Tecnico          |         0.811801 |         0.828037 | [0.791, 0.832] |
-| Participativo    |         0.765261 |         0.780567 | [0.739, 0.790] |
-| Riesgo_Academico |         0.793366 |         0.809233 | [0.770, 0.815] |
-| Riesgo_LMS       |         0.914924 |         0.933222 | [0.905, 0.924] |
+| Critico          |         0.793673 |         0.809546 | [0.770, 0.816] |
+| Tecnico          |         0.788222 |         0.803987 | [0.764, 0.811] |
+| Participativo    |         0.740158 |         0.754961 | [0.711, 0.768] |
+| Riesgo_Academico |         0.795583 |         0.811495 | [0.772, 0.818] |
+| Riesgo_LMS       |         0.911468 |         0.929697 | [0.901, 0.921] |
 
 > [!NOTE]
 > Valores superiores a **0.80** en investigación educativa sugieren una alta precisión en la medición del constructo, permitiendo un análisis de segmentación posterior (clustering) con un margen de error mínimo atribuible al instrumento.

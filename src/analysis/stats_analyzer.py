@@ -42,6 +42,31 @@ class StatsAnalyzer:
         self.scaler = StandardScaler()
         self.log_reg = LogisticRegression(class_weight='balanced', random_state=42)
         self.knn = KNeighborsClassifier(n_neighbors=5)
+        self.tuned_rf_params = None
+        
+    def _get_rf_model(self, X, y, tune=False):
+        from sklearn.ensemble import RandomForestClassifier as RF
+        if not tune:
+            return RF(random_state=42, class_weight='balanced')
+        
+        if self.tuned_rf_params is not None:
+            return RF(random_state=42, **self.tuned_rf_params)
+            
+        print("\n   [INFO] Iniciando GridSearchCV para Random Forest (PR-AUC)...")
+        from sklearn.model_selection import GridSearchCV
+        rf_base = RF(random_state=42)
+        param_grid = {
+            "n_estimators": [300, 500],
+            "max_depth": [4, 6, 8, None],
+            "min_samples_leaf": [2, 5, 10],
+            "max_features": ["sqrt", 0.7],
+            "class_weight": [None, "balanced"]
+        }
+        grid = GridSearchCV(rf_base, param_grid, cv=5, scoring='average_precision', n_jobs=-1)
+        grid.fit(X, y)
+        self.tuned_rf_params = grid.best_params_
+        print(f"   [INFO] GridSearch completado. Mejores parámetros: {self.tuned_rf_params}")
+        return RF(random_state=42, **self.tuned_rf_params)
     
     def prepare_data(self, df_scored: pd.DataFrame):
         """Aisla ruido y parte el dataset en Train / Test para modelos ML."""
@@ -681,19 +706,24 @@ class StatsAnalyzer:
         except Exception as e:
             return {'status': 'error', 'message': str(e)}
 
-    def run_feature_xai_analysis(self, X_train_feat, y_train) -> dict:
+    def run_feature_xai_analysis(self, X_train_feat, y_train, model_type="rf") -> dict:
         """Entrena un modelo sobre los 30 ítems AMI y extrae el Top 10 de preguntas influyentes."""
-        from sklearn.ensemble import GradientBoostingClassifier
+        from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
         import shap
         import matplotlib.pyplot as plt
         import os
         
         # 1. Entrenar modelo granular
-        model = GradientBoostingClassifier(n_estimators=50, random_state=42)
-        model.fit(X_train_feat, y_train)
+        if model_type == 'gb' or model_type == 'gradient_boosting':
+            clf = GradientBoostingClassifier(random_state=42)
+            clf.fit(X_train_feat, y_train)
+        else:
+            # Usar X_train, y_train para evitar leakage de holdout durante hiperparametrización
+            clf = self._get_rf_model(X_train_feat, y_train, tune=True)
+            clf.fit(X_train_feat, y_train)
         
         # 2. SHAP
-        explainer = shap.TreeExplainer(model)
+        explainer = shap.TreeExplainer(clf)
         shap_values = explainer.shap_values(X_train_feat)
         
         # 3. Guardar el plot del Top 10 y bar plot
@@ -747,11 +777,17 @@ class StatsAnalyzer:
         from sklearn.pipeline import Pipeline
         from sklearn.preprocessing import StandardScaler as SS
         from sklearn.linear_model import LogisticRegression as LR
-        from sklearn.ensemble import GradientBoostingClassifier as GB
-        from sklearn.model_selection import RepeatedStratifiedKFold
+        from sklearn.ensemble import GradientBoostingClassifier as GB, RandomForestClassifier as RF
+        from sklearn.model_selection import RepeatedStratifiedKFold, cross_validate, cross_val_predict
+        from sklearn.metrics import make_scorer, precision_score, recall_score, f1_score, roc_auc_score, balanced_accuracy_score, average_precision_score, matthews_corrcoef, accuracy_score
+        import numpy as np
 
-        if model_type == 'rf' or model_type == 'gradient_boosting':
+        if model_type == 'gb' or model_type == 'gradient_boosting':
             clf = GB(random_state=42)
+        elif model_type == 'rf' or model_type == 'tree':
+            clf = self._get_rf_model(X, y, tune=True)
+        elif model_type == 'both':
+            clf = self._get_rf_model(X, y, tune=False)
         else:
             clf = LR(class_weight='balanced', random_state=42, max_iter=500)
 
@@ -761,34 +797,74 @@ class StatsAnalyzer:
         ])
 
         rskf = RepeatedStratifiedKFold(n_splits=5, n_repeats=10, random_state=42)
+        skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
-        auc_scores = cross_val_score(pipe, X, y, cv=rskf, scoring='roc_auc')
-        acc_scores = cross_val_score(pipe, X, y, cv=rskf, scoring='accuracy')
-        f1_scores  = cross_val_score(pipe, X, y, cv=rskf, scoring='f1')
-        from sklearn.metrics import make_scorer, recall_score
-        rec_scores = cross_val_score(pipe, X, y, cv=rskf, scoring=make_scorer(recall_score))
+        # 1. Calcular el umbral óptimo Out-Of-Fold usando predict_proba
+        # cross_val_predict solo funciona con particiones puras (sin repetición)
+        y_proba_oof = cross_val_predict(pipe, X, y, cv=skf, method='predict_proba', n_jobs=-1)[:, 1]
+        
+        # Optimizar umbral buscando mayor F1 out-of-fold con Recall >= 0.60
+        thresholds = np.linspace(0.95, 0.05, 181)
+        best_f1_oof = 0
+        best_th = 0.5
+        for th in thresholds:
+            preds = (y_proba_oof >= th).astype(int)
+            r = recall_score(y, preds, zero_division=0)
+            f = f1_score(y, preds, zero_division=0)
+            if r >= 0.60 and f > best_f1_oof:
+                best_f1_oof = f
+                best_th = th
+                
+        if best_f1_oof == 0:
+            for th in thresholds:
+                preds = (y_proba_oof >= th).astype(int)
+                f = f1_score(y, preds, zero_division=0)
+                if f > best_f1_oof:
+                    best_f1_oof = f
+                    best_th = th
+                
+        # 2. Validacion cruzada normal para ROC_AUC
+        scoring = {'roc_auc': 'roc_auc', 'pr_auc': 'average_precision'}
+        results = cross_validate(pipe, X, y, cv=rskf, scoring=scoring, n_jobs=-1)
+
+        def get_stats(metric):
+            vals = results[f'test_{metric}']
+            return float(vals.mean()), float(vals.std())
+
+        auc_mean, auc_std = get_stats('roc_auc')
+        pr_auc_mean, pr_auc_std = get_stats('pr_auc')
+        
+        # 3. Métricas duras Out-Of-Fold con el umbral óptimo
+        y_pred_oof = (y_proba_oof >= best_th).astype(int)
+        acc_mean = accuracy_score(y, y_pred_oof)
+        f1_mean = f1_score(y, y_pred_oof, zero_division=0)
+        rec_mean = recall_score(y, y_pred_oof, zero_division=0)
+        prec_mean = precision_score(y, y_pred_oof, zero_division=0)
+        bal_acc_mean = balanced_accuracy_score(y, y_pred_oof)
+        mcc_mean = matthews_corrcoef(y, y_pred_oof)
+        
+        # Como estas métricas duras se calculan globalmente sobre las predicciones OOF, 
+        # la varianza entre folds (std) se define en 0 para mantener la compatibilidad del dict.
+        acc_std = f1_std = rec_std = prec_std = bal_acc_std = mcc_std = 0.0
 
         interpretation = (
-            "AUC generalizable robusta" if auc_scores.mean() >= 0.75
+            "AUC generalizable robusta" if auc_mean >= 0.75
             else "AUC moderada — considerar más features o mayor muestra"
         )
 
         return {
             'n_samples': len(y),
             'n_positive': int(y.sum()),
-            'auc_scores': auc_scores.tolist(),
-            'auc_mean': float(auc_scores.mean()),
-            'auc_std': float(auc_scores.std()),
-            'auc_ci_95': [
-                float(auc_scores.mean() - 1.96 * auc_scores.std()),
-                float(auc_scores.mean() + 1.96 * auc_scores.std())
-            ],
-            'accuracy_mean': float(acc_scores.mean()),
-            'accuracy_std': float(acc_scores.std()),
-            'f1_mean': float(f1_scores.mean()),
-            'f1_std': float(f1_scores.std()),
-            'recall_mean': float(rec_scores.mean()),
-            'recall_std': float(rec_scores.std()),
+            'optimal_threshold': float(best_th),
+            'auc_mean': auc_mean, 'auc_std': auc_std,
+            'auc_ci_95': [auc_mean - 1.96 * auc_std, auc_mean + 1.96 * auc_std],
+            'accuracy_mean': acc_mean, 'accuracy_std': acc_std,
+            'f1_mean': f1_mean, 'f1_std': f1_std,
+            'recall_mean': rec_mean, 'recall_std': rec_std,
+            'precision_mean': prec_mean, 'precision_std': prec_std,
+            'balanced_accuracy_mean': bal_acc_mean, 'balanced_accuracy_std': bal_acc_std,
+            'pr_auc_mean': pr_auc_mean, 'pr_auc_std': pr_auc_std,
+            'mcc_mean': mcc_mean, 'mcc_std': mcc_std,
             'interpretation': interpretation
         }
 
@@ -869,7 +945,7 @@ class StatsAnalyzer:
             def _phi_label(phi_val):
                 phi_val = abs(phi_val)
                 if phi_val >= 0.95:
-                    return "Excelente congruencia confirmatoria"
+                    return "Excelente replicabilidad de cargas factoriales"
                 elif phi_val >= 0.85:
                     return "Congruencia adecuada (aceptable para defensa)"
                 elif phi_val >= 0.70:
@@ -997,20 +1073,28 @@ class StatsAnalyzer:
             'best_params': grid.best_params_
         }
 
-    def run_random_forest(self, X_train, X_test, y_train, y_test) -> dict:
-        """Entrena Gradient Boosting (sucesor de RF) para máximo desempeño en muestras pequeñas."""
-        from sklearn.ensemble import GradientBoostingClassifier
+    def run_random_forest(self, X_train, X_test, y_train, y_test, model_type="rf") -> dict:
+        """Entrena RF o GB según lo solicitado por el usuario."""
+        from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
         from sklearn.model_selection import GridSearchCV
         
-        # El Boosting suele ganar al Forest en datasets estructurados pequeños
-        gb = GradientBoostingClassifier(random_state=42)
-        param_grid = {
-            'n_estimators': [20, 50, 100],
-            'learning_rate': [0.01, 0.05, 0.1],
-            'max_depth': [3, 4],
-            'subsample': [0.8, 1.0]
-        }
-        grid = GridSearchCV(gb, param_grid, cv=5, scoring='roc_auc')
+        if model_type == 'gb' or model_type == 'gradient_boosting':
+            clf = GradientBoostingClassifier(random_state=42)
+            param_grid = {
+                'n_estimators': [20, 50, 100],
+                'learning_rate': [0.01, 0.05, 0.1],
+                'max_depth': [3, 4],
+                'subsample': [0.8, 1.0]
+            }
+        else:
+            clf = RandomForestClassifier(random_state=42, class_weight='balanced')
+            param_grid = {
+                'n_estimators': [50, 100, 200],
+                'max_depth': [None, 5, 10],
+                'min_samples_split': [2, 5]
+            }
+
+        grid = GridSearchCV(clf, param_grid, cv=5, scoring='roc_auc')
         grid.fit(X_train, y_train)
         
         best_model = grid.best_estimator_

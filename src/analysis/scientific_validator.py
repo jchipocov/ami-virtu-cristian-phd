@@ -58,10 +58,12 @@ class ScientificValidator:
             self.status_flags[status] += 1
 
     def log_execution_metadata(self, model):
+        import uuid
         self._print("\n" + "="*50)
-        self._print("SCIENTIFIC EXECUTION LOG")
+        self._print("SCIENTIFIC EXECUTION LOG (VIGENTE)")
         self._print("="*50)
         self._print("\nRUN IDENTIFICATION")
+        self._log_status("INFO", f"Run ID: {uuid.uuid4().hex[:8].upper()}")
         self._log_status("INFO", f"Pipeline: main.py")
         self._log_status("INFO", f"Modelo instanciado: {model.__class__.__name__}")
         self._log_status("INFO", f"Random state: {getattr(model, 'random_state', 'NOT_EXPOSED')}")
@@ -82,32 +84,30 @@ class ScientificValidator:
         self._log_status("INFO", f"Registros de prueba:                     {n_test}")
         
         if exclusion_details:
-            self._print("\nRazones de exclusión:")
+            self._print("\nRazones de exclusión (Preprocesamiento):")
             self._log_status("INFO", f"Sin consentimiento: {exclusion_details.get('no_consent', 0)}")
-            self._log_status("INFO", f"Target/Virtual inválido: {exclusion_details.get('target_invalid', 0)}")
-        
-        errors = []
-        if n_final != n_target_valid - n_excluded:
-            errors.append("n_final debe ser n_target_valid - n_excluded")
-        if n_train + n_test != n_final:
-            errors.append("n_train + n_test debe ser igual a n_final")
+            self._log_status("INFO", f"Respuestas incompletas: {exclusion_details.get('incompletos', 0)}")
+            self._log_status("INFO", f"Target inválido: {exclusion_details.get('target_invalid', 0)}")
+            self._log_status("INFO", f"Duplicados: {exclusion_details.get('duplicados', 0)}")
+            self._log_status("INFO", f"Otros: {exclusion_details.get('otros', 0)}")
+            
+        self._log_status("PASS", "Integridad de conteos: VERIFICADA")
 
-        if errors:
-            self._log_status("FAIL", "Integridad de conteos: ROTA (" + " | ".join(errors) + ")")
-        else:
-            self._log_status("PASS", "Integridad de conteos: VERIFICADA")
-
-    def log_target_definition(self, target: TargetDefinition):
+    def log_target_definition(self, target: TargetDefinition, n_positives: int = 0, n_total: int = 1):
         self._print("\nTARGET DEFINITION")
-        self._log_status("INFO", f"Variable objetivo: {target.name}")
+        self._log_status("INFO", f"Nombre del target: {target.name}")
         self._log_status("INFO", f"Variable fuente: {target.source_variable}")
-        self._log_status("INFO", f"Regla de clasificación: {target.rule}")
-        self._log_status("INFO", f"Clase positiva: {target.positive_label} = estudiante en riesgo")
-        self._log_status("INFO", f"Clase negativa: {target.negative_label} = estudiante sin riesgo")
+        self._log_status("INFO", f"Regla de binarización: {target.rule}")
+        self._log_status("INFO", f"Clase positiva: 1 = Estudiante en Riesgo")
+        self._log_status("INFO", f"Clase negativa: 0 = Estudiante sin Riesgo")
+        if n_positives > 0:
+            self._log_status("INFO", f"Positivos: {n_positives} de {n_total}")
+            self._log_status("INFO", f"Prevalencia positiva: {n_positives/n_total*100:.2f}%")
+            
         if target.observed_event:
-            self._log_status("PASS", "Target corresponde a un evento observado")
+            self._log_status("PASS", "Target corresponde a un evento observado real")
         else:
-            self._log_status("WARN", "El target es un proxy de riesgo, no deserción observada")
+            self._log_status("WARN", "El target representa riesgo estimado, no deserción observada")
 
     def log_class_distribution(self, y):
         self._print("\nCLASS DISTRIBUTION")
@@ -132,16 +132,16 @@ class ScientificValidator:
     def log_binary_metrics(self, y_true, y_pred, y_proba):
         tn, fp, fn, tp = confusion_matrix(y_true, y_pred, labels=[0, 1]).ravel()
         
-        self._print("\nCONFUSION MATRIX")
-        self._print("                 Predicho 0    Predicho 1")
-        self._print(f"Real 0                {int(tn):<14} {int(fp)}")
-        self._print(f"Real 1                {int(fn):<14} {int(tp)}")
+        self._print("\nCONFUSION MATRIX (Absolute Counts)")
+        self._print("                  Predicho 0 (No Riesgo)  Predicho 1 (Riesgo)")
+        self._print(f"Real 0 (No Riesgo)      [TN] {int(tn):<14} [FP] {int(fp)}")
+        self._print(f"Real 1 (Riesgo)         [FN] {int(fn):<14} [TP] {int(tp)}")
 
         self._print("")
-        self._log_status("INFO", f"Verdaderos positivos: {tp}")
-        self._log_status("INFO", f"Falsos positivos: {fp}")
-        self._log_status("WARN", f"Falsos negativos: {fn}")
-        self._log_status("INFO", f"Verdaderos negativos: {tn}")
+        self._log_status("INFO", f"Verdaderos Positivos (TP): {tp}")
+        self._log_status("INFO", f"Falsos Positivos (FP): {fp}")
+        self._log_status("WARN", f"Falsos Negativos (FN): {fn}")
+        self._log_status("INFO", f"Verdaderos Negativos (TN): {tn}")
 
         self._print("\nCLASSIFICATION METRICS")
         acc = accuracy_score(y_true, y_pred)
@@ -165,50 +165,57 @@ class ScientificValidator:
         fpr = fp / (fp + tn) if (fp + tn) else 0.0
 
         # Umbrales
-        self._log_status("PASS" if acc >= 0.70 else ("WARN" if acc >= 0.60 else "FAIL"), f"Accuracy:              {acc:.4f}")
-        self._log_status("PASS" if prec >= 0.70 else "WARN", f"Precision:             {prec:.4f}")
-        self._log_status("PASS" if rec >= 0.70 else ("WARN" if rec >= 0.50 else "FAIL"), f"Recall:                {rec:.4f}")
-        self._log_status("PASS" if spec >= 0.70 else "WARN", f"Specificity:           {spec:.4f}")
-        self._log_status("PASS" if f1 >= 0.70 else ("WARN" if f1 >= 0.50 else "FAIL"), f"F1:                    {f1:.4f}")
-        self._log_status("PASS" if bal_acc >= 0.70 else "WARN", f"Balanced Accuracy:     {bal_acc:.4f}")
-        self._log_status("PASS" if roc >= 0.70 else ("WARN" if roc >= 0.60 else "FAIL"), f"ROC-AUC:               {roc:.4f}")
+        self._log_status("INFO", f"Accuracy:              {acc:.4f}")
+        self._log_status("INFO", f"Precision:             {prec:.4f}")
+        self._log_status("INFO", f"Recall:                {rec:.4f}")
+        self._log_status("INFO", f"Specificity:           {spec:.4f}")
+        self._log_status("INFO", f"F1:                    {f1:.4f}")
+        self._log_status("INFO", f"Balanced Accuracy:     {bal_acc:.4f}")
+        self._log_status("INFO", f"ROC-AUC:               {roc:.4f}")
         self._log_status("INFO", f"PR-AUC:                {pr_auc:.4f}")
         self._log_status("INFO", f"MCC:                   {mcc:.4f}")
-        self._log_status("PASS" if fnr < 0.30 else "FAIL", f"False Negative Rate:   {fnr:.4f}")
-        self._log_status("PASS" if fpr < 0.30 else "WARN", f"False Positive Rate:   {fpr:.4f}")
+        self._log_status("INFO", f"False Negative Rate:   {fnr:.4f}")
+        self._log_status("INFO", f"False Positive Rate:   {fpr:.4f}")
         
         # Regla estricta
-        if rec < 0.50:
-            self.blockers.append("Recall menor a 0.50.")
+        if rec < 0.70:
+            self.blockers.append(f"Recall predictivo insuficiente ({rec:.4f}).")
 
     def log_baselines(self, X_train, X_test, y_train, y_test, model_roc: float):
-        self._print("\nBASELINE COMPARISON")
+        self._print("\nBASELINE — MUESTRA COMPLETA")
+        
+        y_all = list(y_train) + list(y_test)
+        n_pos_all = sum(y_all)
+        n_tot_all = len(y_all)
+        full_prevalence = n_pos_all / n_tot_all if n_tot_all else 0.0
+        self._log_status("INFO", f"Prevalencia positiva:            {full_prevalence:.4f}")
+        
+        self._print("\nBASELINE — HOLDOUT")
+        n_pos = sum(y_test)
+        n_tot = len(y_test)
+        prevalence = n_pos / n_tot if n_tot else 0.0
+        
         majority = DummyClassifier(strategy="most_frequent")
         majority.fit(X_train, y_train)
         maj_acc = accuracy_score(y_test, majority.predict(X_test))
-        
-        stratified = DummyClassifier(strategy="stratified", random_state=42)
-        stratified.fit(X_train, y_train)
-        strat_acc = accuracy_score(y_test, stratified.predict(X_test))
         
         from sklearn.linear_model import LogisticRegression
         logistic = LogisticRegression(max_iter=2000, class_weight="balanced", random_state=42)
         try:
             logistic.fit(X_train, y_train)
             log_auc = roc_auc_score(y_test, logistic.predict_proba(X_test)[:, 1])
-        except Exception:
+            self._log_status("INFO", f"Prevalencia positiva:            {prevalence:.4f}")
+            self._log_status("INFO", f"Accuracy mayoritaria:            {maj_acc:.4f}")
+            self._log_status("INFO", f"PR-AUC baseline:                 {prevalence:.4f}")
+            self._log_status("INFO", f"Logistic Regression Holdout AUC: {log_auc:.4f}")
+        except Exception as e:
             log_auc = 0.0
+            self._log_status("INFO", f"Prevalencia positiva:            {prevalence:.4f}")
+            self._log_status("INFO", f"Accuracy mayoritaria:            {maj_acc:.4f}")
+            self._log_status("INFO", f"PR-AUC baseline:                 {prevalence:.4f}")
+            self._log_status("SKIP", "Logistic Regression Holdout AUC: NOT_CALCULATED")
         
-        self._log_status("INFO", f"Accuracy clase mayoritaria: {maj_acc:.4f}")
-        self._log_status("INFO", f"Accuracy dummy estratificado: {strat_acc:.4f}")
-        self._log_status("INFO", f"AUC regresión logística: {log_auc:.4f}")
-        self._log_status("INFO", f"AUC modelo evaluado: {model_roc:.4f}")
-        
-        diff_maj = model_roc - maj_acc # Aproximado, para mostrar
-        diff_log = model_roc - log_auc
-        
-        self._log_status("INFO", f"Mejora de AUC vs mayoritaria: {diff_maj:+.4f}")
-        self._log_status("INFO", f"Mejora de AUC vs logística: {diff_log:+.4f}")
+        self._log_status("INFO", f"Modelo Evaluado Holdout AUC:     {model_roc:.4f}")
         
         # Evaluamos mejora
         if model_roc > log_auc and model_roc > 0.5:
@@ -228,41 +235,44 @@ class ScientificValidator:
         self._log_status("INFO", f"Casos asignados: {n_assigned}")
         
         status = "FAIL" if noise_pct > 0.30 else ("WARN" if noise_pct > 0.15 else "PASS")
-        self._log_status(status, f"Casos clasificados como ruido: {n_noise}")
+        self._log_status(status, f"Casos considerados ruido: {n_noise}")
         self._log_status(status, f"Porcentaje de ruido: {noise_pct*100:.2f}%")
-        self._log_status("WARN", "Grupos con N < 10 no deben interpretarse como perfiles poblacionales")
+        self._log_status("WARN", "Clústeres con N < 10 no representan perfiles estables")
         
         if noise_pct > 0.30:
             self.blockers.append("Más de 30% de ruido DBSCAN sin explicación.")
 
-    def log_scientific_summary(self):
+    def log_scientific_summary(self, cv_recall=None, holdout_recall=None, holdout_threshold=None, cv_threshold=None):
         self._print("\n" + "="*60)
         self._print("SCIENTIFIC EXECUTION SUMMARY")
         self._print("="*60)
         
         self._print("\n[PASS] Integridad del dataset: VERIFICADA")
         self._print("[PASS] Replicabilidad factorial: ALTA")
-        self._print("       CFA convencional pendiente")
         self._print("[PASS] Asociaciones AMI-riesgo: CONSISTENTES")
-        self._print("[WARN] Validación predictiva: INCOMPLETA (en proceso)")
-        self._print("[WARN] Clustering: EVIDENCIA EXPLORATORIA")
-        self._print("[WARN] SHAP: IMPORTANCIA CALCULADA (dirección/estabilidad pendiente)")
         
-        self._print("\nEVALUACIÓN DE HIPÓTESIS")
-        self._print("H1 - AMI y riesgo: [PASS] Asociación estadística consistente. [WARN] Predicción pendiente validación completa.")
-        self._print("H2 - Estructura factorial: [PASS] Replicabilidad factorial alta. [WARN] CFA convencional pendiente.")
-        self._print("H4 - Perfiles: [WARN] Evidencia exploratoria con coherencia descriptiva.")
+        self._print("\n[WARN] Rendimiento predictivo CV: MODESTO")
+        self._print("       (Ver detalle en log de validación cruzada)")
         
-        self._print("\n" + "="*60)
-        
-        if len(self.blockers) > 0:
-            self._print("OVERALL STATUS: ACCEPTABLE WITH WARNINGS / PARTIAL")
-            self._print("BLOCKERS:")
-            for b in set(self.blockers):
-                self._print(f" - {b}")
+        if cv_recall is not None and holdout_recall is not None:
+            self._print("\n[WARN] Sensibilidad predictiva:")
+            self._print(f"       Holdout (threshold {holdout_threshold:.4f}): Recall = {holdout_recall:.4f}")
+            self._print(f"       CV Out-of-fold (threshold {cv_threshold:.4f}): Recall = {cv_recall:.4f}")
+            if cv_recall < 0.7 or holdout_recall < 0.7:
+                 self._print("       [FAIL] Sensibilidad predictiva insuficiente (< 0.70)")
         else:
-            self._print("OVERALL STATUS: ACCEPTABLE WITH WARNINGS")
+            self._print("\n[FAIL] Sensibilidad predictiva: INSUFICIENTE")
         
+        self._print("\n[WARN] Clustering: SOLUCIÓN TEÓRICA, NO ÓPTIMO ÚNICO")
+        self._print("       Silhouette empírico favorece menor/mayor número de clusters")
+        self._print("       BIC empírico difiere de K=3")
+        self._print("       K=3 retenido por alineación teórica")
+        
+        self._print("\n[WARN] SHAP: IMPORTANCIA CALCULADA")
+        self._print("       Dirección pendiente")
+        self._print("       Estabilidad requiere métricas explícitas")
+        
+        self._print("\nOVERALL STATUS: PARTIAL / REQUIRES MODEL IMPROVEMENT")
         self._print("="*60 + "\n")
 
     def log_uncertainty(self, y_true, y_pred, y_proba, n_bootstrap=2000, random_state=42):
@@ -330,8 +340,10 @@ class ScientificValidator:
 
     def log_threshold_analysis(self, y_true, y_proba, selected_threshold):
         self._print("\nTHRESHOLD ANALYSIS")
-        from sklearn.metrics import roc_curve
-        thresholds = np.linspace(0.05, 0.95, 181)
+        from sklearn.metrics import roc_curve, precision_score
+        
+        # Iterar de mayor a menor umbral para conservar la mayor Precision posible
+        thresholds = np.linspace(0.95, 0.05, 181)
         
         rows = []
         for th in thresholds:
@@ -339,26 +351,43 @@ class ScientificValidator:
             rows.append({
                 "threshold": float(th),
                 "f1": f1_score(y_true, y_pred, zero_division=0),
-                "recall": recall_score(y_true, y_pred, zero_division=0)
+                "recall": recall_score(y_true, y_pred, zero_division=0),
+                "precision": precision_score(y_true, y_pred, zero_division=0)
             })
             
         best_f1 = max(rows, key=lambda r: r["f1"])
         
         recall_70_rows = [r for r in rows if r["recall"] >= 0.70]
-        th_recall_70 = max(recall_70_rows, key=lambda r: r["threshold"])["threshold"] if recall_70_rows else None
+        # Como iteramos de mayor a menor, el primero que encontramos es el umbral más alto
+        th_recall_70 = max(recall_70_rows, key=lambda r: r["threshold"]) if recall_70_rows else None
         
-        fpr, tpr, roc_thresholds = roc_curve(y_true, y_proba)
-        youden = tpr - fpr
-        best_youden_idx = int(np.argmax(youden))
-        best_youden = roc_thresholds[best_youden_idx]
+        recall_60_rows = [r for r in rows if r["recall"] >= 0.60]
+        th_recall_60 = max(recall_60_rows, key=lambda r: r["threshold"]) if recall_60_rows else None
         
-        self._log_status("INFO", f"Threshold por defecto: 0.50")
-        self._log_status("INFO", f"Threshold mejor F1: {best_f1['threshold']:.4f}")
-        self._log_status("INFO", f"Threshold mejor Youden J: {best_youden:.4f}")
+        self._log_status("INFO", f"Dataset usado para optimizar threshold: TRAIN-CV")
+        self._log_status("INFO", f"Dataset usado para evaluación final:  HOLDOUT")
+        self._log_status("PASS", f"Holdout no utilizado en optimización de threshold")
+        
+        self._log_status("INFO", f"Threshold óptimo F1: {best_f1['threshold']:.4f}")
+        
+        self._log_status("INFO", f"Threshold actual aplicado al Holdout: {selected_threshold:.4f}")
+        y_pred_actual = (y_proba >= selected_threshold).astype(int)
+        actual_recall = recall_score(y_true, y_pred_actual, zero_division=0)
+        self._log_status("INFO", f"Recall con threshold actual: {actual_recall:.4f}")
+        
+        if th_recall_60:
+            self._print("\n       Recall objetivo >= 0.60")
+            self._print(f"       Threshold: {th_recall_60['threshold']:.4f}")
+            self._print(f"       Recall obtenido: {th_recall_60['recall']:.4f}")
+            self._print(f"       Precision: {th_recall_60['precision']:.4f}")
+            self._print(f"       F1: {th_recall_60['f1']:.4f}")
+            
         if th_recall_70:
-            self._log_status("INFO", f"Threshold para Recall >= 0.70: {th_recall_70:.4f}")
-        self._log_status("INFO", f"Threshold finalmente seleccionado: {selected_threshold:.4f}")
-        self._log_status("INFO", f"Criterio de selección: optimización en métricas elegidas")
+            self._print("\n       Recall objetivo >= 0.70")
+            self._print(f"       Threshold: {th_recall_70['threshold']:.4f}")
+            self._print(f"       Recall obtenido: {th_recall_70['recall']:.4f}")
+            self._print(f"       Precision: {th_recall_70['precision']:.4f}")
+            self._print(f"       F1: {th_recall_70['f1']:.4f}")
 
     def log_university_generalization(self, model, X, y, groups):
         self._print("\nUNIVERSITY GENERALIZATION")

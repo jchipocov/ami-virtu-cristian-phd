@@ -11,16 +11,9 @@ Gracias al motor XAI, hemos podido descender del nivel de "dimensiones" al nivel
 
 | Ranking | Ítem | Impacto SHAP (Abs) | Significado Pedagógico |
 | :--- | :--- | :---: | :--- |
-| **1°** | P5 | 0.2011 | Contribución a la predicción de riesgo |
-| **2°** | P9 | 0.1256 | Contribución a la predicción de riesgo |
-| **3°** | T4 | 0.1207 | Contribución a la predicción de riesgo |
-| **4°** | C8 | 0.1131 | Contribución a la predicción de riesgo |
-| **5°** | T6 | 0.1126 | Uso y manejo de herramientas del campus |
-| **6°** | T9 | 0.1072 | Contribución a la predicción de riesgo |
-| **7°** | T10 | 0.1038 | Contribución a la predicción de riesgo |
-| **8°** | T7 | 0.0737 | Contribución a la predicción de riesgo |
-| **9°** | T1 | 0.0671 | Contribución a la predicción de riesgo |
-| **10°** | P10 | 0.0614 | Participación y comunicación colaborativa |
+| **1°** | C10 | 0.2825 | Capacidad crítica de evaluar información |
+| **2°** | P10 | 0.2363 | Participación y comunicación colaborativa |
+| **3°** | P3 | 0.2267 | Uso de canales digitales de participación |
 
 
 ---

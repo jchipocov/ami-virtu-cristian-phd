@@ -12,7 +12,7 @@ El modelamiento inferencial por regresión logística revela que las dimensiones
 La integración cualitativa asistida por IA ha permitido identificar a un **7.9% de la muestra** que exhibe disonancia cognitiva severa (baja coherencia) entre sus puntuaciones Likert cuantitativas y sus narrativas cualitativas, lo que representa un subgrupo en **"Riesgo Invisible"** que solo puede ser detectado mediante triangulación híbrida de métodos mixtos.
 
 ### C. Invarianza Factorial Confirmada
-La validación confirmatoria mediante split-half reportó un **Coeficiente de Congruencia de Tucker de Φ = 0.9488** para el modelo tridimensional de la escala AMI-VIRTU, superando el estándar doctoral de 0.85 y confirmando que la estructura latente del instrumento es estable y reproducible.
+La validación confirmatoria mediante split-half reportó un **Coeficiente de Congruencia de Tucker de Φ = 0.9430** para el modelo tridimensional de la escala AMI-VIRTU, superando el estándar doctoral de 0.85 y confirmando que la estructura latente del instrumento es estable y reproducible.
 
 ## 3. Taxonomía de los Perfiles (K-Means)
 La segmentación de perfiles estudiantiles identificó tres grupos principales:

@@ -7,18 +7,18 @@ El modelo se ha entrenado para superar el problema del sobreajuste (overfitting)
     
 ## 2. Métricas de Rendimiento del Ensamble
 El algoritmo logró identificar el estatus de riesgo con las siguientes métricas en el conjunto de prueba (Test Set):
-- **Accuracy (Precisión Global):** **0.7393**
-- **AUC-ROC (Área bajo la curva):** **0.7490**
-- **F1-Score (Detección de Riesgo):** **0.6207**
+- **Accuracy (Precisión Global):** **0.7299**
+- **AUC-ROC (Área bajo la curva):** **0.7406**
+- **F1-Score (Detección de Riesgo):** **0.5839**
 
 ## 3. Importancia de Variables (Feature Importance Gini)
 A diferencia de los P-valores, el modelo basado en árboles revela cuánto peso tiene cada dimensión a la hora de particionar y clasificar a un estudiante vulnerable:
 
 | Dimensión AMI | Score de Importancia | Porcentaje |
 | :--- | :---: | :---: |
-| **Critico** | 0.3582 | 35.8% |
-| **Participativo** | 0.3414 | 34.1% |
-| **Tecnico** | 0.3005 | 30.0% |
+| **Critico** | 0.3529 | 35.3% |
+| **Participativo** | 0.3321 | 33.2% |
+| **Tecnico** | 0.3150 | 31.5% |
 
 
 ### Análisis del Modelo de Ensamble
