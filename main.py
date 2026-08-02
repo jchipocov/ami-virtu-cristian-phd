@@ -245,8 +245,9 @@ def main():
     cfa_res = analyzer.run_confirmatory_factor_analysis(df_final)  # [HC-02]
     contrasts = analyzer.run_demographic_contrasts(df_final)       # [HC-03] con efecto
     
-    # Triangulación Mixta (Cuyo sentiment vs cuanti)
+    # Triangulación Mixta y Bivariadas
     triangulation_res = analyzer.run_mixed_methods_triangulation(df_final)
+    biv = analyzer.run_bivariate_analysis(df_final)
     
     # ML Models (Logit & Random Forest)
     X_train, X_test, y_train, y_test = analyzer.prepare_data(df_final)
@@ -283,6 +284,80 @@ def main():
         xai_features = analyzer.run_feature_xai_analysis(X_train_f, y_train_f)
     except Exception as e:
         print(f"   [!] ADVERTENCIA: No se pudo ejecutar SHAP: {e}")
+
+    # --- [5.5] Scientific Validation (FASE 11.5) ---
+    print("\n[5.5] Ejecutando Validación Científica Estricta...")
+    from src.analysis.scientific_validator import ScientificValidator, TargetDefinition
+    import statsmodels.api as sm
+    
+    validator = ScientificValidator()
+    
+    target_model = res_rf['model'] if res_rf else (res_logit['model'] if res_logit else None)
+    if target_model:
+        validator.log_execution_metadata(target_model)
+    
+    n_raw_val = len(df_raw) if 'df_raw' in locals() else len(df_final)
+    n_final_val = len(X_train) + len(X_test)
+    validator.log_data_flow(
+        n_raw=n_raw_val,
+        n_target_valid=n_raw_val,
+        n_excluded=n_raw_val - n_final_val,
+        n_final=n_final_val,
+        n_train=len(X_train),
+        n_test=len(X_test)
+    )
+    
+    td = TargetDefinition(
+        name="Riesgo_Binario",
+        source_variable="Riesgo_Total",
+        rule="Score_Riesgo_Total >= 3.0",
+        observed_event=False
+    )
+    validator.log_target_definition(td)
+    validator.log_class_distribution(y_train.tolist() + y_test.tolist())
+    
+    if res_rf:
+        model = res_rf['model']
+        y_proba = model.predict_proba(X_test)[:, 1]
+        threshold = res_rf['threshold']
+        y_pred = (y_proba >= threshold).astype(int)
+        validator.log_binary_metrics(y_test, y_pred, y_proba)
+        validator.log_baselines(X_train, X_test, y_train, y_test, res_rf['roc_auc'])
+        
+        # FASE 2: Bootstrap Uncertainty
+        validator.log_uncertainty(y_test, y_pred, y_proba)
+        # FASE 2: Threshold Analysis
+        validator.log_threshold_analysis(y_test, y_proba, threshold)
+    elif res_logit:
+        model = res_logit['model']
+        X_test_sm = sm.add_constant(X_test)
+        y_proba = model.predict(X_test_sm)
+        threshold = res_logit['threshold']
+        y_pred = (y_proba >= threshold).astype(int)
+        validator.log_binary_metrics(y_test, y_pred, y_proba)
+        validator.log_baselines(X_train, X_test, y_train, y_test, res_logit['roc_auc'])
+        
+        # FASE 2: Bootstrap Uncertainty
+        validator.log_uncertainty(y_test, y_pred, y_proba)
+        # FASE 2: Threshold Analysis
+        validator.log_threshold_analysis(y_test, y_proba, threshold)
+        
+    if 'Cluster_ID' in df_clustered.columns:
+        validator.log_dbscan(df_clustered['Cluster_ID'])
+        
+    # FASE 2: Cross Validation, Generalización, y Bivariadas (BH)
+    if 'biv' in locals():
+        validator.log_bivariate_analysis(biv)
+        
+    if target_model:
+        X_full = pd.concat([X_train, X_test])
+        y_full = pd.concat([y_train, y_test])
+        validator.log_cross_validation(target_model, X_full, y_full)
+        if 'Universidad' in df_final.columns:
+            groups_full = df_final.loc[X_full.index, 'Universidad']
+            validator.log_university_generalization(target_model, X_full, y_full, groups_full)
+
+    validator.log_scientific_summary()
 
     # --- [6] Reporte Doctoral Final (FASE 12) ---
     print("\n[6] Produciendo Artefactos Finales de Defensa...")
@@ -378,7 +453,6 @@ def main():
         details += "\n"
 
     details += "\n4. ASOCIACIONES BIVARIADAS (AMI vs RIESGO MULTIDIMENSIONAL):\n"
-    biv = analyzer.run_bivariate_analysis(df_final)
     for risk_dim, ami_corrs in biv.items():
         details += f"   - Dimensión Riesgo: {risk_dim}\n"
         for ami_feat, v in ami_corrs.items():
