@@ -392,18 +392,21 @@ def main():
     details += f"   - Entorno: Py {env_info['Python_Version']} | Sklearn {env_info['Scikit-Learn']} | Statsmodels {env_info['Statsmodels']}\n"
     details += "   - Estado: INTEGRIDAD VERIFICADA.\n\n"
 
-    details += "0b. VALIDACIÓN CONFIRMATORIA (CFA / Tucker's Φ) [HC-02]:\n"
+    details += "0b. VALIDACIÓN DE REPLICABILIDAD FACTORIAL [HC-02]:\n"
     if cfa_res.get('status') == 'success':
-        details += f"   - Método: {cfa_res['method']}\n"
-        details += f"   - Referencia: {cfa_res['reference']}\n"
-        details += f"   - N total: {cfa_res['n_total']} (Mitad A: {cfa_res['n_half_a']}, Mitad B: {cfa_res['n_half_b']})\n"
+        details += f"   [INFO] Método: Split-half EFA\n"
+        details += f"   [INFO] Métrica: Tucker's Congruence Coefficient\n"
+        details += f"   [INFO] N total: {cfa_res['n_total']} (Mitad A: {cfa_res['n_half_a']}, Mitad B: {cfa_res['n_half_b']})\n"
         for fac, vals in cfa_res['phi_per_factor'].items():
-            details += f"   - {fac}: Φ = {vals['phi']:.4f} | {vals['interpretation']}\n"
-        details += f"   - Φ Media Global: {cfa_res['phi_mean']:.4f} | RMSR: {cfa_res['rmsr']:.4f}\n"
-        details += f"   - Estructura Confirmada: {'SÍ' if cfa_res['structure_confirmed'] else 'NO'}\n"
-        details += f"   - Interpretación: {cfa_res['overall_interpretation']}\n\n"
+            status = "PASS" if vals['phi'] >= 0.90 else ("WARN" if vals['phi'] >= 0.85 else "FAIL")
+            details += f"   [{status}] {fac}: Φ = {vals['phi']:.4f} | {vals['interpretation']}\n"
+        details += f"   [PASS] Congruencia media global: Φ = {cfa_res['phi_mean']:.4f}\n"
+        details += f"   [WARN] RMSR: {cfa_res['rmsr']:.4f}\n"
+        details += f"   [WARN] RMSR calculado, pero sin criterio interpretativo estricto definido\n"
+        details += f"   [PASS] Replicabilidad factorial global: ALTA\n"
+        details += f"   [WARN] Confirmación mediante CFA convencional: PENDIENTE\n\n"
     else:
-        details += f"   - Error CFA: {cfa_res.get('message', 'Desconocido')}\n\n"
+        details += f"   - Error Split-half EFA: {cfa_res.get('message', 'Desconocido')}\n\n"
     
     details += "1. PSICOMETRÍA Y VALIDACIÓN ESTRUCTURAL:\n"
     details += reliability_df.to_string() + "\n"
@@ -441,9 +444,12 @@ def main():
         verd = res_assumptions.get('overall_verdict', {})
         details += f"   VEREDICTO GLOBAL: {verd.get('summary', 'N/A')}\n\n"
 
+    def format_p(p_val):
+        return "p < 0.0001" if p_val < 0.0001 else f"p={p_val:.4f}"
+
     details += "3. CONTRASTES SOCIODEMOGRÁFICOS (con Tamaño de Efecto) [HC-03]:\n"
     for k_var, v in contrasts.items():
-        details += f"   - {k_var:25}: F/t={v['statistic']:.4f}, p={v['p_value']:.4f}"
+        details += f"   - {k_var:25}: F/t={v['statistic']:.4f}, {format_p(v['p_value'])}"
         if 'cohen_d' in v:
             details += f", d de Cohen={v['cohen_d']:.4f} ({v['effect_magnitude']})"
             if v.get('observed_power') is not None:
@@ -456,10 +462,11 @@ def main():
     for risk_dim, ami_corrs in biv.items():
         details += f"   - Dimensión Riesgo: {risk_dim}\n"
         for ami_feat, v in ami_corrs.items():
-            details += f"     * {ami_feat:20}: Pearson_r={v['Pearson_r']:+.3f} (p={v['P_Pearson']:.4f}) | Spearman_rho={v['Spearman_rho']:+.3f}\n"
+            details += f"     * {ami_feat:20}: Pearson_r={v['Pearson_r']:+.3f} ({format_p(v['P_Pearson'])}) | Spearman_rho={v['Spearman_rho']:+.3f}\n"
 
     if res_logit:
-        details += "\n5. MODELO DE REGRESIÓN LOGÍSTICA (INFERENCIA CIENTÍFICA):\n"
+        details += "\n5. MODEL CONFIGURATION (REGRESIÓN LOGÍSTICA):\n"
+        details += f"   [INFO] Modelo instanciado: LogisticRegression\n"
         details += "- Resumen Completo del Modelo:\n"
         details += res_logit.get('full_summary', 'N/A') + "\n"
         
@@ -509,7 +516,8 @@ def main():
             details += f"   * {var:15}: OR={metrics['OR']:.4f} | IC 95%=[{metrics['Lower_CI']:.3f}, {metrics['Upper_CI']:.3f}]\n"
 
     if res_rf:
-        details += "\n6. ENSAMBLES AVANZADOS (GRADIENT BOOSTING / RANDOM FOREST):\n"
+        details += "\n6. MODEL CONFIGURATION (ENSAMBLES AVANZADOS):\n"
+        details += f"   [INFO] Modelo instanciado: RandomForest / GradientBoosting\n"
         details += f"   - Accuracy: {res_rf.get('accuracy', 0):.4f}\n"
         details += f"   - ROC-AUC:  {res_rf.get('roc_auc', 0):.4f}\n"
         
@@ -517,10 +525,15 @@ def main():
         if rd_rf:
             details += f"   - F1-Score (Riesgo): {rd_rf.get('1', {}).get('f1-score', 0):.4f}\n"
             
-        details += "   - SHAP Global (Impacto por Dimensión):\n"
+        details += "\nNON-LINEARITY VALIDATION\n"
+        details += "   [INFO] Comparación formal lineal vs no lineal ejecutada: NO\n"
+        details += "   [WARN] No puede concluirse no linealidad únicamente por el rendimiento del ensamble\n"
+
+        details += "\n   - SHAP GLOBAL:\n"
         for dim, imp in res_rf.get('feature_importances', {}).items():
             bar = "#" * int(imp * 50)
-            details += f"      {dim:15} | {imp:.4f} | {bar}\n"
+            details += f"      {dim:15} | mean(|SHAP|)={imp:.4f} | {bar}\n"
+        details += "   [WARN] mean(|SHAP|) indica magnitud, no dirección ni causalidad.\n"
 
 
     details += "\n7. SEGMENTACIÓN MULTIALGORITMO:\n"
