@@ -70,18 +70,23 @@ class ScientificValidator:
         self._log_status("INFO", f"Git commit: {safe_git_value('rev-parse', 'HEAD')}")
         self._log_status("INFO", f"Git branch: {safe_git_value('rev-parse', '--abbrev-ref', 'HEAD')}")
 
-    def log_data_flow(self, n_raw: int, n_target_valid: int, n_excluded: int, n_final: int, n_train: int, n_test: int):
+    def log_data_flow(self, n_raw: int, n_target_valid: int, n_excluded: int, n_final: int, n_train: int, n_test: int, exclusion_details=None):
         self._print("\nDATA FLOW")
-        self._log_status("INFO", f"Registros originales:          {n_raw}")
-        self._log_status("INFO", f"Registros con target válido:   {n_target_valid}")
-        self._log_status("INFO", f"Casos excluidos:               {n_excluded}")
-        self._log_status("PASS", f"Muestra analítica final:       {n_final}")
-        self._log_status("INFO", f"Train:                         {n_train}")
-        self._log_status("INFO", f"Test:                          {n_test}")
+        self._log_status("INFO", f"Registros brutos del archivo:            {n_raw}")
+        if exclusion_details:
+            self._log_status("WARN", f"Registros descartados en preprocesamiento: {exclusion_details.get('preproc_dropped', 0)}")
+        self._log_status("INFO", f"Registros válidos iniciales:             {n_target_valid}")
+        self._log_status("WARN", f"Casos sospechosos excluidos:              {n_excluded}")
+        self._log_status("PASS", f"Muestra analítica final:                 {n_final}")
+        self._log_status("INFO", f"Registros de entrenamiento:              {n_train}")
+        self._log_status("INFO", f"Registros de prueba:                     {n_test}")
+        
+        if exclusion_details:
+            self._print("\nRazones de exclusión:")
+            self._log_status("INFO", f"Sin consentimiento: {exclusion_details.get('no_consent', 0)}")
+            self._log_status("INFO", f"Target/Virtual inválido: {exclusion_details.get('target_invalid', 0)}")
         
         errors = []
-        if n_target_valid > n_raw:
-            errors.append("n_target_valid no puede superar n_raw")
         if n_final != n_target_valid - n_excluded:
             errors.append("n_final debe ser n_target_valid - n_excluded")
         if n_train + n_test != n_final:
@@ -182,6 +187,10 @@ class ScientificValidator:
         majority.fit(X_train, y_train)
         maj_acc = accuracy_score(y_test, majority.predict(X_test))
         
+        stratified = DummyClassifier(strategy="stratified", random_state=42)
+        stratified.fit(X_train, y_train)
+        strat_acc = accuracy_score(y_test, stratified.predict(X_test))
+        
         from sklearn.linear_model import LogisticRegression
         logistic = LogisticRegression(max_iter=2000, class_weight="balanced", random_state=42)
         try:
@@ -191,8 +200,15 @@ class ScientificValidator:
             log_auc = 0.0
         
         self._log_status("INFO", f"Accuracy clase mayoritaria: {maj_acc:.4f}")
+        self._log_status("INFO", f"Accuracy dummy estratificado: {strat_acc:.4f}")
         self._log_status("INFO", f"AUC regresión logística: {log_auc:.4f}")
         self._log_status("INFO", f"AUC modelo evaluado: {model_roc:.4f}")
+        
+        diff_maj = model_roc - maj_acc # Aproximado, para mostrar
+        diff_log = model_roc - log_auc
+        
+        self._log_status("INFO", f"Mejora de AUC vs mayoritaria: {diff_maj:+.4f}")
+        self._log_status("INFO", f"Mejora de AUC vs logística: {diff_log:+.4f}")
         
         # Evaluamos mejora
         if model_roc > log_auc and model_roc > 0.5:

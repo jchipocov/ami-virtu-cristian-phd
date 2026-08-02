@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans, AgglomerativeClustering, DBSCAN
 from sklearn.mixture import GaussianMixture
@@ -66,7 +67,7 @@ class ClusteringEngine:
         
         # 1. Método del Codo
         distortions = []
-        K_range = range(2, 8)
+        K_range = range(2, 7)
         for k in K_range:
             km = KMeans(n_clusters=k, random_state=42, n_init=10)
             km.fit(X_scaled)
@@ -95,12 +96,14 @@ class ClusteringEngine:
         plt.savefig(f'{output_dir}/silhouette_plot.png', dpi=150)
         plt.close()
         
-        # 3. Análisis BIC (Bayesian Information Criterion) para GMM
+        # 3. Análisis BIC (Bayesian Information Criterion) y AIC para GMM
         bic_scores = []
+        aic_scores = []
         for k in K_range:
             gmm = GaussianMixture(n_components=k, random_state=42)
             gmm.fit(X_scaled)
             bic_scores.append(gmm.bic(X_scaled))
+            aic_scores.append(gmm.aic(X_scaled))
             
         plt.figure(figsize=(8, 4))
         plt.plot(K_range, bic_scores, 'ro-')
@@ -114,7 +117,10 @@ class ClusteringEngine:
             'k_range': list(K_range),
             'distortions': [float(d) for d in distortions],
             'silhouette_scores': [float(s) for s in sil_scores],
-            'bic_scores': [float(b) for b in bic_scores]
+            'bic_scores': [float(b) for b in bic_scores],
+            'aic_scores': [float(a) for a in aic_scores],
+            'optimal_k_bic': int(K_range[np.argmin(bic_scores)]),
+            'optimal_k_sil': int(K_range[np.argmax(sil_scores)])
         }
 
     def get_cluster_profiles(self, df_clustered: pd.DataFrame) -> dict:

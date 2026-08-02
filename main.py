@@ -263,11 +263,13 @@ def main():
         interaction_res = analyzer.run_interaction_analysis(df_final)
         res_assumptions = analyzer.run_logit_assumption_checks(df_final)  # [HI-04]
         res_logit = analyzer.run_logistic_regression(X_train, X_test, y_train, y_test)
-        res_cv    = analyzer.run_logistic_cv(df_final)                 # [HC-05] k-Fold CV
+        res_cv    = analyzer.run_repeated_cv(df_final, model_type='logistic') # [HC-05] k-Fold CV repetida
         
+    res_rf_cv = None
     if risk_model_type in ["rf", "tree", "both"]:
         print("   -> Ejecutando Modelo No Lineal (Random Forest / Gradient Boosting)...")
         res_rf = analyzer.run_random_forest(X_train, X_test, y_train, y_test)
+        res_rf_cv = analyzer.run_repeated_cv(df_final, model_type='rf')
 
 
     # --- [5] Clustering y XAI (Perfilamiento) ---
@@ -298,13 +300,23 @@ def main():
     
     n_raw_val = len(df_raw) if 'df_raw' in locals() else len(df_final)
     n_final_val = len(X_train) + len(X_test)
+    
+    exclusion_details = {}
+    if 'loader' in locals() and hasattr(loader, 'exclusion_stats'):
+        exclusion_details = loader.exclusion_stats
+        exclusion_details['preproc_dropped'] = exclusion_details.get('no_consent', 0) + exclusion_details.get('target_invalid', 0)
+    
+    n_target_valid = exclusion_details.get('valid_initial', n_raw_val)
+    n_excluded = integrator.excluded_by_coherence if hasattr(integrator, 'excluded_by_coherence') else (n_raw_val - n_final_val)
+
     validator.log_data_flow(
-        n_raw=n_raw_val,
-        n_target_valid=n_raw_val,
-        n_excluded=n_raw_val - n_final_val,
+        n_raw=exclusion_details.get('raw', n_raw_val),
+        n_target_valid=n_target_valid,
+        n_excluded=n_excluded,
         n_final=n_final_val,
         n_train=len(X_train),
-        n_test=len(X_test)
+        n_test=len(X_test),
+        exclusion_details=exclusion_details
     )
     
     td = TargetDefinition(
@@ -462,7 +474,7 @@ def main():
     for risk_dim, ami_corrs in biv.items():
         details += f"   - Dimensión Riesgo: {risk_dim}\n"
         for ami_feat, v in ami_corrs.items():
-            details += f"     * {ami_feat:20}: Pearson_r={v['Pearson_r']:+.3f} ({format_p(v['P_Pearson'])}) | Spearman_rho={v['Spearman_rho']:+.3f}\n"
+            details += f"     * {ami_feat:20}: Pearson_r={v['Pearson_r']:+.3f} ({format_p(v.get('P_Pearson_BH', v['P_Pearson']))} BH) | Spearman_rho={v['Spearman_rho']:+.3f} | Efecto: {v.get('Effect_Size', 'N/A')}\n"
 
     if res_logit:
         details += "\n5. MODEL CONFIGURATION (REGRESIÓN LOGÍSTICA):\n"
@@ -525,6 +537,14 @@ def main():
         if rd_rf:
             details += f"   - F1-Score (Riesgo): {rd_rf.get('1', {}).get('f1-score', 0):.4f}\n"
             
+        if res_rf_cv:
+            details += "\n- VALIDACIÓN CRUZADA ESTRATIFICADA REPETIDA (Gradient Boosting) [HC-05]:\n"
+            details += f"   * N válidos: {res_rf_cv.get('n_samples', 0)} | Casos Riesgo=1: {res_rf_cv.get('n_positive', 0)}\n"
+            details += f"   * AUC-ROC Media: {res_rf_cv.get('auc_mean', 0):.4f} (± {res_rf_cv.get('auc_std', 0):.4f})\n"
+            ci_rf = res_rf_cv.get('auc_ci_95', [0, 0])
+            details += f"   * IC 95% AUC: [{ci_rf[0]:.4f}, {ci_rf[1]:.4f}]\n"
+            details += f"   * Recall Medio: {res_rf_cv.get('recall_mean', 0):.4f} (± {res_rf_cv.get('recall_std', 0):.4f})\n"
+            
         details += "\nNON-LINEARITY VALIDATION\n"
         details += "   [INFO] Comparación formal lineal vs no lineal ejecutada: NO\n"
         details += "   [WARN] No puede concluirse no linealidad únicamente por el rendimiento del ensamble\n"
@@ -552,11 +572,13 @@ def main():
     if 'ari_kmeans_gmm' in agreement:
         details += f"   - Consenso entre Modelos (Adjusted Rand Index): {agreement['ari_kmeans_gmm']:.4f}\n"
     
-    details += "   - Métricas de Estabilidad (K=3):\n"
+    details += "   - Métricas de Estabilidad:\n"
     try:
+        if 'optimal_k_sil' in cluster_val:
+            details += f"     * Óptimo K (Silhouette - KMeans): {cluster_val['optimal_k_sil']}\n"
+            details += f"     * Óptimo K (BIC - GMM):  {cluster_val['optimal_k_bic']}\n"
         idx_3 = cluster_val['k_range'].index(3)
-        details += f"     * Silhouette Score: {cluster_val['silhouette_scores'][idx_3]:.4f}\n"
-        details += f"     * BIC Score (GMM):  {cluster_val['bic_scores'][idx_3]:.4f}\n"
+        details += f"     * Eval K=3 -> Silhouette Score: {cluster_val['silhouette_scores'][idx_3]:.4f}, BIC: {cluster_val['bic_scores'][idx_3]:.4f}\n"
     except:
         pass
 

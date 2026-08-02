@@ -213,16 +213,17 @@ class StatsAnalyzer:
         risk_targets = ['Riesgo_Total', 'Score_Riesgo_Academico', 'Score_Riesgo_LMS', 'Score_Riesgo_Continuidad']
         
         correlations = {}
+        from statsmodels.stats.multitest import multipletests
+        
+        # Recolectar todos los p-valores para corrección múltiple
+        p_values_list = []
         for risk in risk_targets:
             if risk not in df_valid.columns: continue
             correlations[risk] = {}
             for ami in ami_features:
-                # Filtrar NaNs de manera pareada para evitar la propagación de NaNs
                 pair = df_valid[[risk, ami]].dropna()
                 if len(pair) > 2:
-                    # Correlación de Pearson (Lineal)
                     r_val, p_val = stats.pearsonr(pair[risk], pair[ami])
-                    # Spearman (No paramétrica)
                     rho, p_s = stats.spearmanr(pair[risk], pair[ami])
                 else:
                     r_val, p_val = np.nan, np.nan
@@ -232,6 +233,22 @@ class StatsAnalyzer:
                     'Pearson_r': float(r_val), 'P_Pearson': float(p_val),
                     'Spearman_rho': float(rho), 'P_Spearman': float(p_s)
                 }
+                if not np.isnan(p_val):
+                    p_values_list.append((risk, ami, p_val))
+                    
+        # Aplicar Benjamini-Hochberg
+        if p_values_list:
+            pvals = [p[2] for p in p_values_list]
+            _, p_adj, _, _ = multipletests(pvals, alpha=0.05, method='fdr_bh')
+            for (risk, ami, orig_p), adj_p in zip(p_values_list, p_adj):
+                correlations[risk][ami]['P_Pearson_BH'] = float(adj_p)
+                r_val = correlations[risk][ami]['Pearson_r']
+                if abs(r_val) < 0.10: eff = "Trivial"
+                elif abs(r_val) < 0.30: eff = "Pequeño"
+                elif abs(r_val) < 0.50: eff = "Moderado"
+                else: eff = "Grande"
+                correlations[risk][ami]['Effect_Size'] = eff
+
         return correlations
 
     def run_demographic_contrasts(self, df_scored: pd.DataFrame) -> dict:
@@ -679,18 +696,33 @@ class StatsAnalyzer:
         explainer = shap.TreeExplainer(model)
         shap_values = explainer.shap_values(X_train_feat)
         
-        # 3. Guardar el plot del Top 10
+        # 3. Guardar el plot del Top 10 y bar plot
         xai_dir = 'data/outputs/xai'
         os.makedirs(xai_dir, exist_ok=True)
+        
         plt.figure(figsize=(10, 8))
         shap.summary_plot(shap_values, X_train_feat, max_display=10, show=False)
         plot_path = f"{xai_dir}/shap_feature_items_top10.png"
         plt.savefig(plot_path, bbox_inches='tight', dpi=150)
         plt.close()
         
+        # Summary bar plot
+        plt.figure(figsize=(10, 8))
+        shap.summary_plot(shap_values, X_train_feat, max_display=10, plot_type="bar", show=False)
+        plt.savefig(f"{xai_dir}/shap_summary_bar.png", bbox_inches='tight', dpi=150)
+        plt.close()
+        
         # 4. Extraer ranking
         mean_shap = np.abs(shap_values).mean(axis=0)
         ranking = sorted(zip(X_train_feat.columns, mean_shap), key=lambda x: x[1], reverse=True)
+        
+        # 5. Dependencia para los top 3
+        top_3 = [x[0] for x in ranking[:3]]
+        for col in top_3:
+            plt.figure(figsize=(8, 6))
+            shap.dependence_plot(col, shap_values, X_train_feat, show=False)
+            plt.savefig(f"{xai_dir}/shap_dependence_{col}.png", bbox_inches='tight', dpi=150)
+            plt.close()
         
         return {
             'status': 'success',
@@ -698,16 +730,10 @@ class StatsAnalyzer:
             'top_items': ranking[:10]
         }
 
-    def run_logistic_cv(self, df_scored: pd.DataFrame, k: int = 10) -> dict:
+    def run_repeated_cv(self, df_scored: pd.DataFrame, model_type: str = 'logistic') -> dict:
         """
-        [HC-05] Validación cruzada estratificada (Stratified k-Fold) del modelo logístico.
-        Estima el AUC-ROC generalizable (media ± std) sobre todos los datos válidos,
-        resolviendo el sesgo del split único train/test.
-
-        Parámetros
-        ----------
-        k : int
-            Número de pliegues (default=10, estándar doctoral).
+        [HC-05] Validación cruzada RepeatedStratifiedKFold (5 folds x 10 repeticiones).
+        Aplica para Logit o RandomForest.
         """
         if 'Flag_Inconsistencia' in df_scored.columns:
             df_valid = df_scored[df_scored['Flag_Inconsistencia'] == False].copy()
@@ -718,21 +744,29 @@ class StatsAnalyzer:
         X = df_valid[features].dropna()
         y = df_valid.loc[X.index, 'Riesgo_Total'].astype(int)
 
-        # Escalar DENTRO de cada fold para evitar data-leakage
         from sklearn.pipeline import Pipeline
         from sklearn.preprocessing import StandardScaler as SS
         from sklearn.linear_model import LogisticRegression as LR
+        from sklearn.ensemble import GradientBoostingClassifier as GB
+        from sklearn.model_selection import RepeatedStratifiedKFold
+
+        if model_type == 'rf' or model_type == 'gradient_boosting':
+            clf = GB(random_state=42)
+        else:
+            clf = LR(class_weight='balanced', random_state=42, max_iter=500)
 
         pipe = Pipeline([
             ('scaler', SS()),
-            ('logit', LR(class_weight='balanced', random_state=42, max_iter=500))
+            ('clf', clf)
         ])
 
-        skf = StratifiedKFold(n_splits=k, shuffle=True, random_state=42)
+        rskf = RepeatedStratifiedKFold(n_splits=5, n_repeats=10, random_state=42)
 
-        auc_scores = cross_val_score(pipe, X, y, cv=skf, scoring='roc_auc')
-        acc_scores = cross_val_score(pipe, X, y, cv=skf, scoring='accuracy')
-        f1_scores  = cross_val_score(pipe, X, y, cv=skf, scoring='f1')
+        auc_scores = cross_val_score(pipe, X, y, cv=rskf, scoring='roc_auc')
+        acc_scores = cross_val_score(pipe, X, y, cv=rskf, scoring='accuracy')
+        f1_scores  = cross_val_score(pipe, X, y, cv=rskf, scoring='f1')
+        from sklearn.metrics import make_scorer, recall_score
+        rec_scores = cross_val_score(pipe, X, y, cv=rskf, scoring=make_scorer(recall_score))
 
         interpretation = (
             "AUC generalizable robusta" if auc_scores.mean() >= 0.75
@@ -740,7 +774,6 @@ class StatsAnalyzer:
         )
 
         return {
-            'k_folds': k,
             'n_samples': len(y),
             'n_positive': int(y.sum()),
             'auc_scores': auc_scores.tolist(),
@@ -754,6 +787,8 @@ class StatsAnalyzer:
             'accuracy_std': float(acc_scores.std()),
             'f1_mean': float(f1_scores.mean()),
             'f1_std': float(f1_scores.std()),
+            'recall_mean': float(rec_scores.mean()),
+            'recall_std': float(rec_scores.std()),
             'interpretation': interpretation
         }
 
