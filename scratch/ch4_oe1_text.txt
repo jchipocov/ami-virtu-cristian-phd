@@ -1,0 +1,150 @@
+[1055]: El capítulo se estructura en cinco apartados principales. En primer lugar, se presentan los resultados de la validación psicométrica del instrumento de alfabetización mediática (AMI‑VIRTU). En segundo lugar, se analizan las asociaciones entre las dimensiones de la alfabetización mediática y el riesgo de deserción. En tercer lugar, se exponen los resultados del modelo de regresión logística orientado a estimar la probabilidad de riesgo. En cuarto lugar, se describen los perfiles estudiantiles identificados mediante técnicas de segmentación. Finalmente, se integran los hallazgos cuantitativos con el análisis cualitativo, a partir de las respuestas abiertas del cuestionario, con el propósito de enriquecer la interpretación de los resultados.
+
+[1056]: Verificación de supuestos estadísticos y robustez del análisis
+
+[1057]: Con el propósito de fortalecer el rigor metodológico del estudio y garantizar la validez de los resultados obtenidos, se procedió a la verificación de los supuestos estadísticos asociados a las técnicas de análisis empleadas, en coherencia con las exigencias del enfoque cuantitativo y las recomendaciones metodológicas para estudios de carácter explicativo.
+
+[1058]: En relación con el análisis correlacional, se evaluó la distribución de las variables principales del estudio —alfabetización mediática (AMI) y riesgo de deserción— a fin de verificar la pertinencia del uso de coeficientes paramétricos y no paramétricos. En este sentido, se consideraron indicadores de forma de distribución, tales como asimetría y curtosis, así como la naturaleza ordinal de los ítems derivados de escalas tipo Likert.
+
+[1059]: Dado que las variables analizadas derivan de la agregación de múltiples ítems y presentan características mixtas entre ordinalidad y aproximación a continuidad, se optó por una estrategia metodológica robusta consistente en la utilización complementaria de los coeficientes de correlación de Pearson (r) y Spearman (ρ). Esta decisión permite asegurar la estabilidad de los resultados, independientemente del grado de cumplimiento de los supuestos de normalidad.
+
+[1060]: En relación con el modelo de regresión logística binaria, se verificaron los supuestos fundamentales asociados a este tipo de modelamiento, incluyendo la independencia de las observaciones, la ausencia de multicolinealidad entre variables predictoras y la relación lineal entre las variables independientes y el logit de la variable dependiente. Estos supuestos fueron evaluados mediante diagnósticos estadísticos incorporados en el pipeline analítico, asegurando la validez de las estimaciones obtenidas.
+
+[1061]: En conjunto, la verificación de supuestos realizada permite afirmar que las técnicas estadísticas seleccionadas son metodológicamente pertinentes para el análisis de los datos, y que los resultados presentados mantienen consistencia y robustez frente a las condiciones empíricas del dataset.
+
+[1062]: Resultados de la validación psicométrica del instrumento AMI‑VIRTU (OE1)
+
+[1063]: Previamente al análisis de la relación entre la alfabetización mediática y el riesgo de deserción universitaria, se procedió a evaluar la calidad psicométrica del instrumento AMI‑VIRTU, con el propósito de verificar su consistencia interna, adecuación muestral y coherencia estructural en el contexto de universidades públicas peruanas.
+
+[1064]: Consistencia interna de la escala (fiabilidad)
+
+[1065]: La fiabilidad del instrumento fue evaluada mediante el coeficiente Alfa de Cronbach (α) y el coeficiente Omega de McDonald (ω), obteniéndose resultados elevados en las tres dimensiones del constructo. En términos generales, los valores de consistencia interna se situaron por encima de 0.84 para α y 0.86 para ω, lo que indica un nivel elevado de fiabilidad y coherencia entre los ítems que componen cada dimensión.
+
+[1066]: Estos resultados evidencian que el instrumento presenta una adecuada estabilidad interna, permitiendo inferir que los ítems convergen en la medición del constructo de alfabetización mediática. Asimismo, el uso complementario del coeficiente Omega refuerza la robustez del análisis, al no depender del supuesto de tau‑equivalencia.
+
+[1067]: Adecuación muestral y condiciones para el análisis factorial
+
+[1068]: La adecuación de los datos para el análisis factorial fue evaluada mediante el coeficiente Kaiser‑Meyer‑Olkin (KMO), que alcanzó un valor de 0.9259, considerado excelente según los estándares psicométricos. Adicionalmente, la prueba de esfericidad de Bartlett resultó significativa (p < 0.001), lo que confirma la existencia de correlaciones suficientes entre los ítems del instrumento.
+
+[1069]: Estos resultados garantizan la idoneidad de la matriz de correlaciones para la aplicación de análisis factoriales.
+
+[1070]: Estructura factorial del instrumento (validez estructural)
+
+[1071]: El Análisis Factorial Exploratorio (EFA) evidenció una estructura consistente con el modelo teórico propuesto, identificando tres dimensiones principales: crítica, técnica y participativa. La varianza total explicada por la solución factorial fue de 40.99%, valor considerado aceptable para instrumentos multidimensionales en ciencias sociales.
+
+[1072]: Invarianza estructural
+
+[1073]: Con el fin de evaluar la estabilidad de la estructura factorial del instrumento, se aplicó un análisis de consistencia mediante partición de la muestra (split-half), calculando el coeficiente de congruencia de Tucker (Φ). Los resultados fueron:
+
+[1074]: Dimensión crítica: Φ = 0.9717
+
+[1075]: Dimensión técnica: Φ = 0.9280
+
+[1076]: Dimensión participativa: Φ = 0.8458
+
+[1077]: Estos valores evidencian una alta estabilidad estructural del instrumento entre submuestras, especialmente en las dimensiones crítica y técnica.
+
+[1078]: Tabla 2
+
+[1079]: Estadísticos de fiabilidad y validez psicométrica del instrumento AMI‑VIRTU
+
+[1080]: Dimensión
+
+[1081]: Alfa de Cronbach (α)
+
+[1082]: Omega de McDonald (ω)
+
+[1083]: Congruencia Tucker (Φ)
+
+[1084]: Crítica
+
+[1085]: > 0.84
+
+[1086]: > 0.86
+
+[1087]: 0.9717
+
+[1088]: Técnica
+
+[1089]: > 0.84
+
+[1090]: > 0.86
+
+[1091]: 0.9280
+
+[1092]: Participativa
+
+[1093]: > 0.84
+
+[1094]: > 0.86
+
+[1095]: 0.8458
+
+[1096]: Nota. KMO = 0.9259 (adecuación muestral excelente); prueba de esfericidad de Bartlett significativa (p < 0.001); varianza total explicada por el EFA = 40.99%
+
+[1097]: Síntesis de resultados psicométricos (OE1)
+
+[1098]: En conjunto, los resultados evidencian que el instrumento AMI‑VIRTU presenta niveles elevados de fiabilidad interna y una estructura factorial coherente con su fundamentación teórica. La consistencia de los coeficientes α y ω, junto con los indicadores de adecuación muestral y estabilidad estructural, confirman que el instrumento es válido y confiable para la medición de la alfabetización mediática en el contexto analizado.
+
+[1099]: Resultados de las asociaciones entre alfabetización mediática y riesgo de deserción (OE2)
+
+[1100]: Con el propósito de analizar la relación entre las dimensiones de la alfabetización mediática y el riesgo de deserción universitaria en entornos virtuales, se calcularon coeficientes de correlación de Pearson (r) y Spearman (ρ), en coherencia con la naturaleza de los datos y como estrategia de validación cruzada entre técnicas paramétricas y no paramétricas.
+
+[1101]: Relación entre alfabetización mediática y riesgo de deserción (análisis global)
+
+[1102]: Los resultados evidencian la existencia de asociaciones negativas entre los niveles de alfabetización mediática y los indicadores de riesgo de deserción, lo que implica que, a mayor nivel de competencia mediática, menor probabilidad de presentar conductas asociadas al abandono académico.
+
+[1103]: En particular, se identificaron correlaciones más consistentes en la relación entre el constructo de alfabetización mediática y los indicadores de interacción en entornos virtuales (dimensión LMS), observándose un coeficiente de correlación de magnitud moderada: 
+
+[1104]: r = −0.312 entre alfabetización mediática global e indicadores de riesgo LMS.
+
+[1105]: Este resultado sugiere que el nivel de alfabetización mediática se encuentra inversamente asociado con la regularidad de acceso, participación y cumplimiento en el entorno virtual de aprendizaje.
+
+[1106]: Análisis por dimensiones del contructo AMI-VIRTU
+
+[1107]: Al desagregar el análisis por dimensiones del constructo AMI‑VIRTU, se observaron patrones diferenciados en la magnitud de las asociaciones:
+
+[1108]: La dimensión técnica mostró una asociación negativa más fuerte con los indicadores de riesgo en plataformas virtuales, evidenciando la relevancia de las competencias operativas para la permanencia académica.
+
+[1109]: La dimensión participativa presentó correlaciones negativas moderadas, particularmente vinculadas a la interacción en foros y actividades colaborativas.
+
+[1110]: La dimensión crítica evidenció asociaciones más atenuadas, lo que sugiere que el análisis crítico de la información, si bien relevante, tiene una menor incidencia directa sobre el comportamiento operativo en el entorno virtual.
+
+[1111]: Estos resultados muestran que no todas las dimensiones de la alfabetización mediática inciden de la misma manera sobre el riesgo de deserción, lo que aporta evidencia para un entendimiento más matizado del fenómeno.
+
+[1112]: Tabla 3
+
+[1113]: Correlación entre dimensiones de alfabetización mediática y riesgo de deserción 
+
+[1114]: Variable
+
+[1115]: Riesgo Total (r)
+
+[1116]: Riesgo LMS (r)
+
+[1117]: Riesgo Académico (r)
+
+[1118]: AMI Global
+
+[1119]: -0.21
+
+[1120]: -0.31
+
+[1121]: -0.18
+
+[1122]: Dimensión Critica
+
+[1123]: -0.15
+
+[1124]: -0.19
+
+[1125]: -0.12
+
+[1126]: Dimensión Técnica
+
+[1127]: -0.28
+
+[1128]: -0.34
+
+[1129]: -0.22
+

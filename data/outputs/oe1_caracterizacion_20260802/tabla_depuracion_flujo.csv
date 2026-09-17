@@ -1,0 +1,7 @@
+﻿Etapa,Instrumento_Fuente,N_Previo,N_Excluidos,Pct_Respecto_N_Previo,Pct_Muestra_Bruta,N_Resultante,Justificacion_Metodologica
+1. Muestra Bruta de Campo,Formulario de Encuesta (data/raw),823,0,0.0,0.0,823,Censo total de cuestionarios registrados en plataforma digital
+2. Filtro Ético (Consentimiento Informado),Reactivo formal de consentimiento (Columna 6),823,5,0.61,0.61,818,Exclusión de participantes sin consentimiento voluntario expreso (Helsinki / Concytec)
+3. Filtro Metodológico (Actividad Virtual 2022-2025),Reactivo de cursado en modalidad virtual (Columna 8),818,44,5.38,5.35,774,Delimitación de la población objetivo: experiencia real en entornos virtuales
+4. Control de Calidad Psicométrica Cuantitativo,Detector objetivo de aquiescencia (varianza = 0),774,21,2.71,2.55,753,Remoción de flatliners con varianza cero pre-inversión en los 30 ítems AMI
+MUESTRA CUANTITATIVA PRINCIPAL OFICIAL,Base analítica oficial consolidada y congelada,753,0,0.0,91.49,753,"Muestra definitiva para caracterización OE1, contrastes inferenciales y modelos"
+SUBMUESTRA DE INTEGRACIÓN CUALITATIVA (PARALELA),Filtro de suficiencia textual en preguntas abiertas,774,45,5.81,5.47,729,Submuestra con densidad discursiva suficiente para NLP y joint display concurrente

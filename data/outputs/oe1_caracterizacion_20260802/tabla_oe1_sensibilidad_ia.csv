@@ -1,0 +1,5 @@
+﻿Variable,Dimensión,Media_N753_Oficial,Media_N702_Historico,Diferencia_Absoluta,Pct_Cambio_Media,Dif_Estandarizada_DE,DE_N753,DE_N702,Mediana_N753,Mediana_N702,Pct_Bajo_N753,Pct_Bajo_N702,Pct_Medio_N753,Pct_Medio_N702,Pct_Alto_N753,Pct_Alto_N702,Diagnostico_Robustez
+Score_Critico,Critico,3.6345,3.6698,-0.0353,-0.97,-0.0658,0.5359,0.514,3.7,3.7,33.6,31.34,34.26,35.33,32.14,33.33,Robusto / Diferencia trivial (|Delta/DE| < 0.10)
+Score_Tecnico,Tecnico,3.4404,3.4655,-0.0252,-0.73,-0.0492,0.5116,0.5023,3.5,3.5,33.33,31.05,35.59,37.04,31.08,31.91,Robusto / Diferencia trivial (|Delta/DE| < 0.10)
+Score_Participativo,Participativo,3.4683,3.4973,-0.029,-0.84,-0.0484,0.5995,0.585,3.4,3.5,38.65,37.04,31.87,32.19,29.48,30.77,Robusto / Diferencia trivial (|Delta/DE| < 0.10)
+Score_AMI_Global,AMI Global,3.5144,3.5442,-0.0298,-0.85,-0.0613,0.4868,0.473,3.5,3.5333,35.19,32.91,32.8,33.62,32.01,33.48,Robusto / Diferencia trivial (|Delta/DE| < 0.10)

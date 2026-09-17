@@ -1,0 +1,130 @@
+Total paragraphs: 1755
+
+--- [72] ---
+Resultados de la validación psicométrica del instrumento AMI‑VIRTU (OE1)120
+
+--- [95] ---
+En consecuencia, la alfabetización mediática no solo representa una competencia instrumental, sino una condición habilitante para la participación crítica, ética y sostenida en entornos virtuales de aprendizaje. Su ausencia o bajo desarrollo puede convertirse en un factor de riesgo para la deserción, especialmente en contextos de vulnerabilidad socioeconómica y tecnológica como los que enfrentan muchas universidades públicas peruanas. Esta situación plantea la necesidad urgente de investigar el vínculo entre alfabetización mediática y permanencia estudiantil, con el fin de generar evidencia que fundamente políticas educativas más inclusivas y sostenibles.
+
+--- [115] ---
+Desde este marco teórico, el estudio de Ritorni Baz et al. (2022) analiza una muestra de más de 4,900 estudiantes, los autores identifican que más del 50% reside a más de 200 km de la universidad, tiene entre 30 y 39 años y trabaja a tiempo parcial o completo, lo que revela el perfil no tradicional del alumnado virtual. Entre los factores más determinantes del abandono destacan la falta de tiempo para estudiar y presentar trabajos, la dificultad para compatibilizar responsabilidades laborales y familiares, y, de manera especialmente relevante, la carencia de comunicación efectiva entre estudiantes y docentes. Esta última se traduce en frustración, desmotivación y sensación de aislamiento, convirtiéndose en la principal causa de abandono según los propios estudiantes.
+
+--- [141] ---
+Diversos trabajos previos y revisiones sistemáticas han contribuido a delinear el estado del arte sobre la deserción universitaria y la alfabetización mediática en entornos virtuales, aportando tanto evidencia empírica como marcos conceptuales para el análisis de estos fenómenos:
+
+--- [252] ---
+Si bien la alfabetización mediática ha sido ampliamente conceptualizada desde múltiples enfoques y modelos que incluyen entre cinco y seis dimensiones —como las propuestas por Ferrés y Piscitelli (2012), Altamirano (2020) y la propia UNESCO (2020)— la presente investigación adopta una organización tridimensional que agrupa las competencias mediáticas en las dimensiones crítica, técnica y participativa. Esta decisión responde a criterios de coherencia conceptual, parquedad metodológica y pertinencia contextual.
+
+--- [272] ---
+El desarrollo de dispositivos como el VEA (Silvetti, 2025) y otros sistemas de alerta temprana (Bañeres et al., 2023) ha permitido identificar y atender trayectorias en riesgo de manera preventiva, combinando indicadores académicos y sociales para orientar intervenciones personalizadas. Estos sistemas de alerta temprana (SAT) se fundamentan en la recopilación y análisis sistemático de datos provenientes de plataformas virtuales, registros de participación, calificaciones y patrones de interacción, permitiendo detectar señales de alerta como inactividad, ausentismo, bajo rendimiento o aislamiento social (Bañeres et al., 2023; Paulsen & Lindsay, 2024). La literatura destaca que la eficacia de los SAT depende de su capacidad para traducir datos en acciones concretas y oportunas, evitando enfoques reduccionistas basados solo en métricas cuantitativas (Kahu & Nelson, 2018).
+
+--- [284] ---
+A pesar del reconocimiento creciente de la importancia de la alfabetización mediática, la literatura señala que existen vacíos significativos en la evaluación empírica de su impacto directo sobre la permanencia y la deserción universitaria, especialmente en contextos virtuales (Hernández-Marín et al., 2024; Corona-Rodríguez, 2021). Muchos estudios se han centrado en la descripción de competencias o en la implementación de programas formativos, pero son escasos los trabajos que analizan de manera sistemática la relación causal entre el nivel de alfabetización mediática y los indicadores de permanencia o abandono estudiantil (Orellana et al., 2020; Chiarino et al., 2024). Asimismo, se observa una limitada integración de datos cualitativos y cuantitativos en los estudios existentes, lo que dificulta la comprensión profunda de los factores que inciden en las trayectorias en riesgo (Silvetti, 2025). La literatura también destaca la necesidad de desarrollar protocolos éticos y sostenibles para el uso de datos educativos, así como de avanzar en la escalabilidad y transferibilidad de los dispositivos de acompañamiento y alerta temprana (Sclater, 2016; Silvetti, 2025
+
+--- [307] ---
+Para definir la unidad de análisis, se seleccionará un grupo de carreras que presenten los mayores índices de deserción en educación virtual, empleando este criterio únicamente como filtro operativo para focalizar el estudio. Esta selección no implica el análisis de particularidades disciplinares ni la comparación entre campos académicos, ya que estos aspectos no forman parte del problema de investigación ni de los objetivos planteados. En consecuencia, la dimensión disciplinar queda fuera del alcance metodológico del estudio, pudiendo considerarse únicamente como una línea de investigación futura. La revisión sistemática respalda este enfoque, al señalar que la comparación entre áreas disciplinares con distintas demandas tecnológicas y mediáticas facilita la identificación de brechas formativas y perfiles de riesgo (Gaona-Portal et al., 2024; Silvetti, 2025). Así, se busca identificar patrones, brechas y factores de riesgo asociados a la deserción universitaria en entornos virtuales, aportando evidencia para el diseño de estrategias formativas y de acompañamiento contextualizadas. Este análisis situado contribuye a la pertinencia y aplicabilidad de las recomendaciones, permitiendo adaptar las intervenciones a las realidades específicas de cada grupo disciplinar.
+
+--- [324] ---
+La unidad de análisis principal son los estudiantes de pregrado que cursan estudios en modalidad virtual en universidades públicas de Lima Metropolitana (matriculados 2022-2025). Se pone especial énfasis en los estudiantes que muestran indicios de estar en riesgo de deserción, definidos por criterios como bajo rendimiento académico, ausentismo, participación limitada en actividades académicas / plataformas LMS, falta de interés y otras conductas que sugieren vulnerabilidad ante el abandono (Silvetti, 2025). Esta definición de unidad de análisis se fundamenta en la revisión sistemática, que destaca la importancia de focalizar el estudio en los perfiles más vulnerables y en riesgo, para comprender en profundidad los factores que inciden en la permanencia o abandono en entornos virtuales (Orellana et al., 2020; Chiarino et al., 2024). La selección de estudiantes en riesgo permite captar la complejidad de las trayectorias académicas y aporta evidencia relevante para el diseño de estrategias de intervención y acompañamiento institucional.
+
+--- [341] ---
+El tamaño de la muestra para la fase cuantitativa del estudio se determinó mediante la aplicación de la fórmula de Cochran, ampliamente utilizada en investigaciones educativas para la estimación de proporciones con criterios de precisión estadística. Para el cálculo se consideró un nivel de confianza del 95% (Z = 1.96), un margen de error del 5% (d = 0.05) y una proporción poblacional desconocida (p = 0.5).
+
+--- [358] ---
+En términos del tipo de datos contenidos, la base articula distintos niveles y naturalezas de información empírica. En primer lugar, incluye variables dicotómicas, tales como aquellas asociadas al consentimiento informado y a la condición de haber cursado o no asignaturas en modalidad virtual o híbrida, esta última empleada como criterio de pertenencia efectiva al corpus analítico, dado que únicamente los participantes con experiencia en educación virtual resultan pertinentes para los objetivos del estudio. En segundo lugar, incorpora variables categóricas y ordinales vinculadas a características académicas y a señales de riesgo de deserción, entre ellas antecedentes de retiro o abandono de cursos, operacionalizadas mediante categorías ordenadas (por ejemplo, “no”, “sí, un curso”, “sí, más de un curso”), conforme a lo establecido en el instrumento ARD‑VIRTU.
+
+--- [383] ---
+Adicionalmente, se establecen criterios específicos para el tratamiento de valores faltantes, diferenciando entre omisión de respuesta, no aplicabilidad y errores de registro. Estos valores son codificados de manera diferenciada, evitando su confusión con valores válidos y permitiendo su tratamiento adecuado en las etapas analíticas posteriores. Este procedimiento es fundamental para garantizar la validez de los análisis estadísticos y la integridad de los resultados.
+
+--- [400] ---
+La construcción de estas variables responde a criterios metodológicos explícitos, tales como el cálculo de promedios por dimensión, la estandarización de escalas o la recodificación de valores cuando resulta necesario garantizar consistencia interpretativa. Estas variables permiten sintetizar la información contenida en múltiples ítems y constituyen el insumo principal para la aplicación de técnicas analíticas como correlaciones, regresiones o segmentaciones.
+
+--- [432] ---
+DIMENSIÓN CRÍTICA (C1–C10). C2. Verifico la fuente y la evidencia antes de utilizar información digital en mis trabajos académicos.
+
+--- [464] ---
+DIMENSIÓN CRÍTICA (C1–C10). C6. Suelo utilizar información digital en mis trabajos académicos sin comprobar su veracidad.
+
+--- [830] ---
+Como continuación del proceso de construcción del corpus de investigación, previamente descrito en términos de su naturaleza, estructura y configuración metodológica, se procede a documentar la fase operativa de tratamiento del dato, orientada a la transformación de la base de datos bruta en un insumo analíticamente válido. En coherencia con la distinción establecida entre base bruta, base depurada y base analítica, esta etapa se centra en la identificación sistemática de inconsistencias, la aplicación de criterios explícitos de exclusión y la ejecución de reglas de validación y codificación previamente definidas. De manera complementaria, se incorpora el tratamiento y curaduría del componente cualitativo, asegurando la pertinencia, densidad y consistencia de las respuestas textuales que integran el corpus. En conjunto, este proceso permite garantizar la trazabilidad del dato, la transparencia metodológica y la integridad empírica del estudio, constituyendo la base necesaria para el desarrollo de los análisis estadísticos e interpretativos posteriores.
+
+--- [862] ---
+A diferencia de los ítems AMI que utilizan una escala Likert uniforme de 5 puntos de acuerdo/desacuerdo, las variables de riesgo académico presentan escalas de respuesta heterogéneas: A4 emplea una escala ordinal cualitativa (Alto/Medio/Bajo), mientras que A5-A8 utilizan escalas Likert de frecuencia/intensidad con etiquetas distintas. Esta heterogeneidad impedía el cálculo directo de promedios y la construcción del score compuesto de riesgo académico.
+
+--- [870] ---
+Las decisiones de limpieza y acondicionamiento del dataset real se fundamentaron bajo estrictos criterios metodológicos: 
+
+--- [916] ---
+Complementariamente, el instrumento incorpora criterios provenientes del modelo de competencia mediática de Ferrés y Piscitelli (2012), ampliamente utilizado por la red ALFAMED y aplicado en estudios como el cuestionario de 42 ítems validado por ValleRazo, TorresToukoumidis y RomeroRodríguez (2020). Este modelo aporta indicadores sólidos para evaluar las habilidades críticas y técnicas, que aquí se reorganizan en correspondencia con la dimensión crítica y la dimensión técnica del presente instrumento. Asimismo, la estructura final del cuestionario se sustenta en el marco de Alfabetización Mediática e Informacional (MIL) propuesto por la UNESCO (2020), que reconoce estas tres dimensiones como competencias esenciales para desenvolverse adecuadamente en la educación superior contemporánea.
+
+--- [917] ---
+En conjunto, la selección de estas tres dimensiones responde a un criterio de coherencia teórica, pertinencia contextual y operatividad metodológica. Su integración permite evaluar de manera precisa las competencias mediáticas de los estudiantes en aspectos que se relacionan directamente con su permanencia en entornos virtuales: la capacidad de analizar críticamente la información disponible, el dominio de herramientas digitales necesarias para gestionar el aprendizaje en línea y la participación activa en dinámicas colaborativas propias de la educación virtual. Por estas razones, el instrumento resultante constituye una herramienta válida, fiable y conceptualmente alineada con los objetivos del estudio.
+
+--- [998] ---
+Las respuestas recolectadas mediante el formulario en línea serán exportadas para su procesamiento estadístico. Se realizará una depuración inicial que incluirá la verificación de rangos y consistencia de valores, revisión de patrones de no respuesta, identificación de registros duplicados cuando sea técnicamente posible sin comprometer el anonimato, y validación de criterios mínimos de completitud. Los registros que no cumplan con los criterios definidos de calidad y completitud (por ejemplo, abandono temprano del cuestionario o patrones de respuesta inválidos) serán excluidos del análisis cuantitativo.
+
+--- [1010] ---
+La identificación de perfiles de estudiantes se realizará mediante un procedimiento de agrupamiento en dos etapas: clustering jerárquico (enlace de Ward) para explorar la estructura de los datos y estimar un rango plausible de soluciones, seguido de k‑means para refinar centroides y asignaciones finales. El número de perfiles se definirá combinando criterios de ajuste (codo, silueta) y coherencia interpretativa.
+
+--- [1017] ---
+La presente investigación se desarrollará cumpliendo los principios éticos establecidos por el Belmont Report, las normativas de protección de sujetos humanos exigidas por los Institutional Review Boards (IRB) de los Estados Unidos y los lineamientos de buenas prácticas del CITI Program para investigaciones educativas. En coherencia con estos estándares, se adoptarán los siguientes criterios:
+
+--- [1062] ---
+Resultados de la validación psicométrica del instrumento AMI‑VIRTU (OE1)
+
+--- [1189] ---
+De acuerdo con la arquitectura analítica definida, la solución de agrupamiento fue evaluada mediante métricas de validación interna, incluyendo el Silhouette Score y el criterio de información bayesiano (BIC) para los modelos probabilísticos, así como procedimientos de comparación entre algoritmos mediante el Adjusted Rand Index (ARI). En el avance metodológico de la semana 5 se estableció que la solución de K = 3 conglomerados resultaba pertinente para representar los patrones diferenciados presentes en la muestra. 
+
+--- [1193] ---
+Perfil 1: estudiantes con alta alfabetización mediática y bajo riesgo de deserción.
+
+--- [1198] ---
+Este perfil estaría asociado a estudiantes con puntajes más bajos en las dimensiones de alfabetización mediática y con mayores señales de riesgo, particularmente en indicadores vinculados con baja participación, irregularidad en el acceso al aula virtual, dificultades académicas sostenidas o desvinculación progresiva del curso.
+
+--- [1208] ---
+Alta alfabetización mediática y bajo riesgo
+
+--- [1235] ---
+De manera complementaria, los estudiantes con niveles más bajos de alfabetización mediática reportaron con mayor frecuencia dificultades asociadas a la gestión del tiempo, el uso de herramientas tecnológicas y la permanencia en el entorno virtual, lo cual resulta consistente con los indicadores de riesgo observados en el análisis cuantitativo.
+
+--- [1298] ---
+El análisis de segmentación permitió identificar tres perfiles estudiantiles diferenciados según sus niveles de alfabetización mediática y riesgo de deserción. Los perfiles agrupan estudiantes con alta alfabetización mediática y bajo riesgo, alfabetización mediática intermedia y riesgo moderado, y baja alfabetización mediática asociada a un mayor nivel de riesgo.
+
+--- [1326] ---
+El bajo valor del pseudoR² evidencia que la deserción universitaria constituye un fenómeno multidimensional que no puede ser explicado únicamente a partir de variables de alfabetización mediática.
+
+--- [1363] ---
+Esta interpretación mantiene coherencia con la literatura que describe la deserción universitaria como un proceso complejo y multifactorial. Los trabajos de Tinto (1993, 2012, 2024) han señalado que la permanencia estudiantil depende de procesos de integración académica y social que evolucionan a lo largo del tiempo, mientras que investigaciones más recientes en educación virtual destacan la influencia simultánea de factores tecnológicos, pedagógicos, emocionales y organizacionales en la continuidad de los estudios. Desde esta perspectiva, la alfabetización mediática puede comprenderse como un componente que fortalece la capacidad de los estudiantes para responder a dichas exigencias, pero cuyo efecto depende de la interacción con otros elementos del ecosistema educativo.
+
+--- [1407] ---
+Los resultados obtenidos deben interpretarse considerando las limitaciones inherentes al diseño metodológico de la investigación. En primer lugar, el estudio se desarrolló bajo un diseño no experimental y de corte transversal, lo que permitió identificar asociaciones entre las variables analizadas, pero no establecer relaciones de causalidad entre la alfabetización mediática y el riesgo de deserción universitaria. Asimismo, la investigación se concentró en estudiantes de universidades públicas de Lima Metropolitana, por lo que la transferencia de los hallazgos a otros contextos institucionales, geográficos o disciplinarios debe realizarse con la debida cautela.
+
+--- [1426] ---
+OE1: Caracterizar el nivel de alfabetización mediática de los estudiantes.
+
+--- [1486] ---
+OE1. Caracterizar el nivel de alfabetización mediática (AMI) de los estudiantes de pregrado en universidades públicas de Lima.
+
+--- [1522] ---
+OE1. Caracterizar el nivel de alfabetización mediática (AMI) de los estudiantes de pregrado.
+
+--- [1528] ---
+OE1. Caracterizar AMI
+
+--- [1534] ---
+OE1. Caracterizar AMI
+
+--- [1540] ---
+OE1. Caracterizar AMI
+
+--- [1597] ---
+T6. (R) Evito usar nuevas herramientas digitales, aunque podrían mejorar mis trabajos.
+
+--- [1634] ---
+Interpretación analítica: Dado que el instrumento no cuenta con normas poblacionales locales, la interpretación de los puntajes se realiza de manera relativa, utilizando percentiles de la muestra (por ejemplo, bajo ≤ P33; medio > P33–P66; alto > P66). Estos puntos de corte se emplean exclusivamente con fines analíticos y comparativos, evitando interpretaciones normativas o diagnósticas.
+
+--- [1744] ---
+Codificación y cálculo de puntajes (notas técnicas): Los ítems del ARD‑VIRTU se codifican de acuerdo con su tipo de respuesta (dicotómica, ordinal o Likert). A partir de la combinación de señales académicas y conductuales, los estudiantes son clasificados en las categorías riesgo o no riesgo, siguiendo el criterio operativo definido en el capítulo metodológico.
+
+--- [1748] ---
+Notas técnicas para el análisis del instrumento (no es parte del instrumento): Los ítems del ARD‑VIRTU permiten identificar señales académicas y conductuales de riesgo, que serán integradas para clasificar a los estudiantes en las categorías riesgo o no riesgo, de acuerdo con el criterio operativo definido en el capítulo metodológico. El instrumento no mide el abandono efectivo, sino la probabilidad aumentada de interrupción de la trayectoria académica en entornos virtuales.

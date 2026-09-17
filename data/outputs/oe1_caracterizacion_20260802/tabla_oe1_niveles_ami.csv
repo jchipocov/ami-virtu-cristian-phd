@@ -1,0 +1,5 @@
+﻿Variable,Dimensión,Corte_P33,Corte_P66,N_Bajo,Pct_Bajo,N_Medio,Pct_Medio,N_Alto,Pct_Alto,Total_N,Empates_P33,Empates_P66
+Score_Critico,Critico,3.4,3.8,253,33.6,258,34.26,242,32.14,753,60,87
+Score_Tecnico,Tecnico,3.2667,3.6,251,33.33,268,35.59,234,31.08,753,0,103
+Score_Participativo,Participativo,3.2,3.8,291,38.65,240,31.87,222,29.48,753,55,33
+Score_AMI_Global,AMI Global,3.3333,3.7333,265,35.19,247,32.8,241,32.01,753,22,16

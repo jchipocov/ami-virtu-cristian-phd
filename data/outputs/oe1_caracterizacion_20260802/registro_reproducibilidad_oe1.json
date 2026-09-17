@@ -1,0 +1,115 @@
+{
+  "metadatos_ejecucion": {
+    "timestamp": "2026-09-17T14:44:47.988032",
+    "version_pipeline": "2.0_dual_architecture",
+    "script_ejecutado": "scripts/generate_oe1_descriptives.py",
+    "sistema_operativo": "Windows 10 (10.0.26200)",
+    "python_version": "3.11.3 (tags/v3.11.3:f3909b8, Apr  4 2023, 23:49:59) [MSC v.1934 64 bit (AMD64)]",
+    "librerias_clave": {
+      "pandas": "3.0.2",
+      "numpy": "2.4.4",
+      "openpyxl": "3.1.5"
+    }
+  },
+  "hashes_entradas": {
+    "raw_excel": {
+      "path": "C:\\Users\\jchip\\Downloads\\learning_analytics_ami-20260917T111531Z-1-001\\learning_analytics_ami\\data\\raw\\Formulario de Investigación Académica Doctoral - BIU(823).xlsx",
+      "sha256": "7CAB203BAA86433D9FD9D78F0D541FE8537C7696D2F2FD833B1D416E7CE7C3EB",
+      "size_bytes": 468293
+    },
+    "hybrid_csv": {
+      "path": "C:\\Users\\jchip\\Downloads\\learning_analytics_ami-20260917T111531Z-1-001\\learning_analytics_ami\\data\\processed\\real_hybrid_analysis_results_823.csv",
+      "sha256": "0ABB4789C71D5A656996584810E532EA04A56830610B8859A4598BE2BD65D1A3",
+      "size_bytes": 1391960
+    },
+    "paper_ready_csv": {
+      "path": "C:\\Users\\jchip\\Downloads\\learning_analytics_ami-20260917T111531Z-1-001\\learning_analytics_ami\\data\\processed\\real_ami_virtu_final_paper_ready_823.csv",
+      "sha256": "17DE62208054AA7843C4019739558E6FCBABE14DFFFA189115A190B4AABC93E4",
+      "size_bytes": 1347672
+    }
+  },
+  "hashes_salidas": {
+    "base_analitica_final_753_csv": {
+      "path": "C:\\Users\\jchip\\Downloads\\learning_analytics_ami-20260917T111531Z-1-001\\learning_analytics_ami\\data\\outputs\\oe1_caracterizacion_20260802\\real_ami_virtu_analytical_final_753.csv",
+      "sha256": "259724F4BF0F9B8EDC7C6579750B0258709F720DE2CC4A8C6739EB29C5C19BF0"
+    },
+    "libro_resultados_excel": {
+      "path": "C:\\Users\\jchip\\Downloads\\learning_analytics_ami-20260917T111531Z-1-001\\learning_analytics_ami\\data\\outputs\\oe1_caracterizacion_20260802\\Libro_Resultados_OE1_AMI_VIRTU.xlsx",
+      "sha256": "021774811BFA4172176AF8A996E1B9F7167D876C4BD8C983B84A93253FE1BD38"
+    },
+    "capitulo_4_markdown": {
+      "path": "C:\\Users\\jchip\\Downloads\\learning_analytics_ami-20260917T111531Z-1-001\\learning_analytics_ami\\data\\outputs\\oe1_caracterizacion_20260802\\Capitulo_4_Secciones_Depuracion_y_OE1.md",
+      "sha256": "B6B3FAE3326A413CBE28A012689B60EC9E550C92903F581E095058B4FA4F1073"
+    },
+    "tabla_descriptivos_csv": {
+      "path": "C:\\Users\\jchip\\Downloads\\learning_analytics_ami-20260917T111531Z-1-001\\learning_analytics_ami\\data\\outputs\\oe1_caracterizacion_20260802\\tabla_oe1_descriptivos_ami.csv",
+      "sha256": "993F7246470F658145AAA71731A167F9B0EC70E1AFCFEFB460CBD05425FDBF05"
+    },
+    "tabla_niveles_csv": {
+      "path": "C:\\Users\\jchip\\Downloads\\learning_analytics_ami-20260917T111531Z-1-001\\learning_analytics_ami\\data\\outputs\\oe1_caracterizacion_20260802\\tabla_oe1_niveles_ami.csv",
+      "sha256": "995882731480DA89912B543D861DFA246D8F7DE704838B357517DEAF88F137B4"
+    },
+    "tabla_sensibilidad_csv": {
+      "path": "C:\\Users\\jchip\\Downloads\\learning_analytics_ami-20260917T111531Z-1-001\\learning_analytics_ami\\data\\outputs\\oe1_caracterizacion_20260802\\tabla_oe1_sensibilidad_ia.csv",
+      "sha256": "7BCB4CC3990A98EE77A0E3E51A8A6C6F2B7DAAD4743FD5620044F2F8C3AA7917"
+    },
+    "tabla_flujo_csv": {
+      "path": "C:\\Users\\jchip\\Downloads\\learning_analytics_ami-20260917T111531Z-1-001\\learning_analytics_ami\\data\\outputs\\oe1_caracterizacion_20260802\\tabla_depuracion_flujo.csv",
+      "sha256": "42B7054B7E905E3BF57BF2A11EC584825F346E58DBFAD26C96A8BB705F2B6B44"
+    },
+    "tabla_inconsistencias_csv": {
+      "path": "C:\\Users\\jchip\\Downloads\\learning_analytics_ami-20260917T111531Z-1-001\\learning_analytics_ami\\data\\outputs\\oe1_caracterizacion_20260802\\tabla_inconsistencias_deteccion.csv",
+      "sha256": "9453EC29DEDCD5BEBD28A404A176EE1C5F3A1E8BFC43BA2734837D4305323971"
+    },
+    "tabla_harness_csv": {
+      "path": "C:\\Users\\jchip\\Downloads\\learning_analytics_ami-20260917T111531Z-1-001\\learning_analytics_ami\\data\\outputs\\oe1_caracterizacion_20260802\\tabla_harness_validacion_ia.csv",
+      "sha256": "E20B43A562B825F1DFD60740AD2DE6DE524711C96E2C267D57532F8A57FF0827"
+    },
+    "tabla_missing_csv": {
+      "path": "C:\\Users\\jchip\\Downloads\\learning_analytics_ami-20260917T111531Z-1-001\\learning_analytics_ami\\data\\outputs\\oe1_caracterizacion_20260802\\tabla_missing_por_item.csv",
+      "sha256": "30ADD3A17A5096405DF710D6819AE77E00910ACEA6DE5ED3E19D688394A8F716"
+    }
+  },
+  "balance_muestral_dual": {
+    "n_bruto_campo": 823,
+    "filtro_consentimiento": 5,
+    "filtro_virtual": 44,
+    "n_elegible_campo": 774,
+    "pipeline_cuantitativo": {
+      "exclusiones_flatliners_var0": 21,
+      "n_muestra_cuantitativa_oficial": 753
+    },
+    "pipeline_cualitativo": {
+      "exclusiones_suficiencia_textual_ia": 45,
+      "n_submuestra_integracion": 729
+    }
+  },
+  "auditoria_missing_data_n753": {
+    "total_celdas": 22590,
+    "celdas_faltantes": 2161,
+    "pct_faltantes_total": 9.57,
+    "faltantes_critico": 1051,
+    "pct_faltantes_critico": 13.96,
+    "faltantes_tecnico": 1110,
+    "pct_faltantes_tecnico": 14.74,
+    "faltantes_participativo": 0,
+    "pct_faltantes_participativo": 0.0,
+    "estudiantes_completos": 382,
+    "estudiantes_con_faltantes": 371
+  },
+  "auditoria_fiabilidad_c6": {
+    "alfa_critico_corregido": 0.8673,
+    "alfa_critico_historico": 0.8023,
+    "alfa_tecnico": 0.7932,
+    "alfa_participativo": 0.7517,
+    "alfa_global": 0.9112
+  },
+  "sensibilidad_n753_vs_n702": {
+    "n_oficial": 753,
+    "n_historico": 702,
+    "media_global_n753": 3.5144,
+    "media_global_n702": 3.5442,
+    "diferencia_media_global": -0.0298,
+    "conclusion": "Robusto / Desplazamiento de medias estrictamente trivial (< 0.036)"
+  }
+}
